@@ -1,0 +1,65 @@
+{
+  "expo": {
+    "name": "Rodaki",
+    "slug": "rodaki",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#2563EB"
+    },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.rodaki.app",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Precisamos da câmera para fotografar comprovantes de pagamento.",
+        "NSPhotoLibraryUsageDescription": "Precisamos da galeria para selecionar comprovantes de pagamento.",
+        "NSPhotoLibraryAddUsageDescription": "Salvamos imagens relacionadas ao seu transporte."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#2563EB"
+      },
+      "edgeToEdgeEnabled": true,
+      "package": "com.rodaki.app",
+      "permissions": [
+        "CAMERA",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE",
+        "RECEIVE_BOOT_COMPLETED",
+        "VIBRATE"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/icon.png",
+          "color": "#2563EB",
+          "sounds": []
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Precisamos da galeria para comprovantes de pagamento.",
+          "cameraPermission": "Precisamos da câmera para fotografar comprovantes."
+        }
+      ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "YOUR_EAS_PROJECT_ID"
+      }
+    }
+  }
+}
