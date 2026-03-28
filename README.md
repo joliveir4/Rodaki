@@ -17,12 +17,14 @@ A React Native Expo mobile application for managing ridesharing trips, payments,
 
 Rodaki is a full-featured ridesharing platform with distinct user roles:
 
-- **Drivers**: Manage passengers, track trips, and handle payments
-- **Passengers**: Schedule trips, upload payment receipts, and receive notifications
+- **Drivers**: Register via the app, manage passengers, track trips, and handle payments
+- **Passengers**: Registered by drivers, can schedule trips, upload payment receipts, and receive notifications
 
 ### Key Features
 
 - 🔐 Firebase Authentication (Email/Password)
+  - Drivers can self-register through the app
+  - Passengers are registered by their assigned driver
 - 📍 Trip management and scheduling
 - 💳 Payment tracking and receipt uploads
 - 🔔 Push notifications via Expo
@@ -176,22 +178,7 @@ In Firebase Console:
    - Start in **test mode** (for development)
    - Choose a region (e.g., `us-central1`)
 
-3. **Cloud Storage**
-   - Go to **Storage**
-   - Click **Create bucket**
-   - Accept defaults and create
-   - Update **Security Rules** for development:
 
-   ```
-   rules_version = '2';
-   service firebase.storage {
-     match /b/{bucket}/o {
-       match /{allPaths=**} {
-         allow read, write: if request.auth != null;
-       }
-     }
-   }
-   ```
 
 ---
 

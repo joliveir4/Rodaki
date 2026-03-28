@@ -94,6 +94,13 @@ export const LoginScreen: React.FC<AuthScreenProps<'Login'>> = ({ navigation }) 
               }
             />
 
+            <TouchableOpacity
+              onPress={() => navigation.navigate('ForgotPassword')}
+              style={styles.forgotPassword}
+            >
+              <Text style={styles.forgotPasswordText}>Esqueceu a senha?</Text>
+            </TouchableOpacity>
+
             <Button
               label="Entrar"
               onPress={handleLogin}
@@ -105,7 +112,7 @@ export const LoginScreen: React.FC<AuthScreenProps<'Login'>> = ({ navigation }) 
 
           {/* Footer */}
           <View style={styles.footer}>
-            <Text style={styles.footerText}>Não tem conta? </Text>
+            <Text style={styles.footerText}>É motorista e não tem conta? </Text>
             <TouchableOpacity onPress={() => navigation.navigate('Register')}>
               <Text style={styles.footerLink}>Cadastre-se</Text>
             </TouchableOpacity>
@@ -163,6 +170,14 @@ const styles = StyleSheet.create({
   errorBannerText: {
     color: Colors.error,
     fontSize: Typography.fontSize.sm,
+  },
+  forgotPassword: {
+    alignSelf: 'flex-end',
+  },
+  forgotPasswordText: {
+    color: Colors.primary,
+    fontSize: Typography.fontSize.sm,
+    fontWeight: Typography.fontWeight.medium,
   },
   submitBtn: { marginTop: Spacing.sm },
   togglePassword: { fontSize: 18 },

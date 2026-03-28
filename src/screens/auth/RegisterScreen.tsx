@@ -20,7 +20,6 @@ import {
   getPasswordError,
 } from '@utils/validators';
 import type { AuthScreenProps } from 'src/@types/navigation.types';
-import type { UserRole } from 'src/@types/user.types';
 
 // ─── Screen ───────────────────────────────────────────────────────────────────
 
@@ -31,7 +30,6 @@ export const RegisterScreen: React.FC<AuthScreenProps<'Register'>> = ({ navigati
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
-  const [role, setRole] = useState<UserRole>('passenger');
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const validate = (): boolean => {
@@ -50,7 +48,7 @@ export const RegisterScreen: React.FC<AuthScreenProps<'Register'>> = ({ navigati
 
   const handleRegister = () => {
     if (!validate()) return;
-    register({ name: name.trim(), email: email.trim(), phone, password, role });
+    register({ name: name.trim(), email: email.trim(), phone, password, role: 'driver' });
   };
 
   return (
@@ -71,24 +69,8 @@ export const RegisterScreen: React.FC<AuthScreenProps<'Register'>> = ({ navigati
 
           {/* Header */}
           <View style={styles.header}>
-            <Text style={styles.title}>Criar conta</Text>
+            <Text style={styles.title}>Cadastro de Motorista</Text>
             <Text style={styles.subtitle}>Preencha seus dados para começar</Text>
-          </View>
-
-          {/* Role Selector */}
-          <View style={styles.roleContainer}>
-            {(['passenger', 'driver'] as UserRole[]).map((r) => (
-              <TouchableOpacity
-                key={r}
-                onPress={() => setRole(r)}
-                style={[styles.roleBtn, role === r && styles.roleBtnActive]}
-              >
-                <Text style={styles.roleIcon}>{r === 'passenger' ? '🧑' : '🚌'}</Text>
-                <Text style={[styles.roleLabel, role === r && styles.roleLabelActive]}>
-                  {r === 'passenger' ? 'Passageiro' : 'Motorista'}
-                </Text>
-              </TouchableOpacity>
-            ))}
           </View>
 
           {/* Form */}
@@ -169,28 +151,6 @@ const styles = StyleSheet.create({
   header: { marginBottom: Spacing.lg },
   title: { fontSize: Typography.fontSize.xxl, fontWeight: Typography.fontWeight.bold, color: Colors.textPrimary },
   subtitle: { fontSize: Typography.fontSize.md, color: Colors.textSecondary, marginTop: Spacing.xs },
-  roleContainer: {
-    flexDirection: 'row',
-    gap: Spacing.md,
-    marginBottom: Spacing.lg,
-  },
-  roleBtn: {
-    flex: 1,
-    alignItems: 'center',
-    padding: Spacing.md,
-    borderRadius: BorderRadius.lg,
-    borderWidth: 2,
-    borderColor: Colors.border,
-    backgroundColor: Colors.surface,
-    gap: Spacing.xs,
-  },
-  roleBtnActive: {
-    borderColor: Colors.primary,
-    backgroundColor: Colors.primaryLight,
-  },
-  roleIcon: { fontSize: 28 },
-  roleLabel: { fontSize: Typography.fontSize.sm, fontWeight: Typography.fontWeight.semibold, color: Colors.textSecondary },
-  roleLabelActive: { color: Colors.primary },
   form: { gap: Spacing.md },
   errorBanner: { backgroundColor: Colors.errorLight, padding: Spacing.md, borderRadius: BorderRadius.md },
   errorBannerText: { color: Colors.error, fontSize: Typography.fontSize.sm },

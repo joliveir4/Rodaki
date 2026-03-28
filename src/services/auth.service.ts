@@ -4,6 +4,7 @@ import {
   signOut,
   onAuthStateChanged,
   updateProfile,
+  sendPasswordResetEmail,
   type User as FirebaseUser,
   type Unsubscribe,
 } from 'firebase/auth';
@@ -29,60 +30,78 @@ export const authService = {
    * Registra novo usuário e cria documento no Firestore
    */
   async register(data: RegisterData): Promise<User> {
-    const credential = await createUserWithEmailAndPassword(
-      firebaseAuth,
-      data.email,
-      data.password,
-    );
+    console.log('📝 Iniciando registro para:', data.email);
 
-    await updateProfile(credential.user, { displayName: data.name });
+    try {
+      const credential = await createUserWithEmailAndPassword(
+        firebaseAuth,
+        data.email,
+        data.password,
+      );
+      console.log('✅ Usuário criado no Firebase Auth. UID:', credential.user.uid);
 
-    const userData: Omit<User, 'createdAt' | 'updatedAt'> & {
-      createdAt: ReturnType<typeof serverTimestamp>;
-      updatedAt: ReturnType<typeof serverTimestamp>;
-    } = {
-      id: credential.user.uid,
-      name: data.name,
-      email: data.email,
-      phone: data.phone,
-      role: data.role,
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp(),
-    };
+      await updateProfile(credential.user, { displayName: data.name });
+      console.log('✅ Profile atualizado com displayName:', data.name);
 
-    await setDoc(doc(firestore, USERS_COLLECTION, credential.user.uid), userData);
+      const userData: Omit<User, 'createdAt' | 'updatedAt'> & {
+        createdAt: ReturnType<typeof serverTimestamp>;
+        updatedAt: ReturnType<typeof serverTimestamp>;
+      } = {
+        id: credential.user.uid,
+        name: data.name,
+        email: data.email,
+        phone: data.phone,
+        role: data.role,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      };
 
-    return {
-      ...userData,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
+      console.log('📄 Tentando salvar documento no Firestore:', userData);
+      await setDoc(doc(firestore, USERS_COLLECTION, credential.user.uid), userData);
+      console.log('✅ Documento salvo com sucesso no Firestore');
+
+      return {
+        ...userData,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+    } catch (error) {
+      console.error('❌ Erro durante o registro:', error);
+      throw error;
+    }
   },
 
   /**
    * Login com e-mail e senha, retorna dados do usuário do Firestore
    */
   async login(credentials: AuthCredentials): Promise<User> {
+    console.log('🔐 Tentando login com:', credentials.email);
     const credential = await signInWithEmailAndPassword(
       firebaseAuth,
       credentials.email,
       credentials.password,
     );
+    console.log('✅ Login Firebase Auth bem-sucedido. UID:', credential.user.uid);
 
-    return authService.fetchUserData(credential.user.uid);
+    const userData = await authService.fetchUserData(credential.user.uid);
+    console.log('✅ Dados do usuário recuperados:', userData);
+    return userData;
   },
 
   /**
    * Busca dados completos do usuário no Firestore
    */
   async fetchUserData(uid: string): Promise<User> {
+    console.log('📄 Buscando dados do Firestore para UID:', uid);
     const docRef = doc(firestore, USERS_COLLECTION, uid);
     const docSnap = await getDoc(docRef);
 
     if (!docSnap.exists()) {
+      console.error('❌ Documento não encontrado no Firestore para UID:', uid);
       throw new Error('Usuário não encontrado');
     }
 
+    console.log('✅ Documento encontrado:', docSnap.data());
     const data = docSnap.data();
     return {
       ...data,
@@ -135,6 +154,13 @@ export const authService = {
     await updateDoc(doc(firestore, USERS_COLLECTION, uid), payload);
 
     return payload as Partial<Driver>;
+  },
+
+  /**
+   * Envia e-mail de reset de senha
+   */
+  async resetPassword(email: string): Promise<void> {
+    await sendPasswordResetEmail(firebaseAuth, email);
   },
 
   /**

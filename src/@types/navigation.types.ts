@@ -6,6 +6,7 @@ import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 export type AuthStackParamList = {
   Login: undefined;
   Register: undefined;
+  ForgotPassword: undefined;
 };
 
 // ─── Passenger Tab Navigator ──────────────────────────────────────────────────

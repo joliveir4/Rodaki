@@ -34,11 +34,17 @@ export const useAuth = () => {
     async (credentials: AuthCredentials) => {
       try {
         setLoading(true);
+        setError(null);
         const userData = await authService.login(credentials);
         setUser(userData);
       } catch (err: any) {
+        console.error('Login error:', err);
+        console.error('Error code:', err.code);
+        console.error('Error message:', err.message);
         const message = mapFirebaseError(err.code);
         setError(message);
+      } finally {
+        setLoading(false);
       }
     },
     [],
@@ -48,11 +54,17 @@ export const useAuth = () => {
     async (data: RegisterData) => {
       try {
         setLoading(true);
+        setError(null);
         const userData = await authService.register(data);
         setUser(userData);
       } catch (err: any) {
+        console.error('Register error:', err);
+        console.error('Error code:', err.code);
+        console.error('Error message:', err.message);
         const message = mapFirebaseError(err.code);
         setError(message);
+      } finally {
+        setLoading(false);
       }
     },
     [],
@@ -63,6 +75,23 @@ export const useAuth = () => {
     signOut();
   }, []);
 
+  const resetPassword = useCallback(
+    async (email: string) => {
+      try {
+        setLoading(true);
+        await authService.resetPassword(email);
+        setError(null);
+      } catch (err: any) {
+        const message = mapFirebaseError(err.code);
+        setError(message);
+        throw err;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [],
+  );
+
   return {
     user,
     isAuthenticated,
@@ -71,6 +100,7 @@ export const useAuth = () => {
     login,
     register,
     logout,
+    resetPassword,
   };
 };
 
@@ -78,6 +108,7 @@ export const useAuth = () => {
 
 function mapFirebaseError(code: string): string {
   const messages: Record<string, string> = {
+    'auth/invalid-credential': 'Usuário ou senha incorretos',
     'auth/user-not-found': 'Usuário não encontrado',
     'auth/wrong-password': 'Senha incorreta',
     'auth/email-already-in-use': 'E-mail já cadastrado',
@@ -85,6 +116,8 @@ function mapFirebaseError(code: string): string {
     'auth/invalid-email': 'E-mail inválido',
     'auth/too-many-requests': 'Muitas tentativas. Tente novamente em alguns minutos',
     'auth/network-request-failed': 'Sem conexão com a internet',
+    'auth/missing-email': 'E-mail é obrigatório',
+    'auth/user-disabled': 'Esta conta foi desativada',
   };
   return messages[code] ?? 'Ocorreu um erro. Tente novamente';
 }

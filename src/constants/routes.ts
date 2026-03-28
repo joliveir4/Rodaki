@@ -3,6 +3,7 @@
 export const AUTH_ROUTES = {
   LOGIN: 'Login',
   REGISTER: 'Register',
+  FORGOT_PASSWORD: 'ForgotPassword',
 } as const;
 
 // ─── Passenger Tabs ───────────────────────────────────────────────────────────
