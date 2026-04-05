@@ -57,6 +57,12 @@
       ]
     ],
     "extra": {
+      "llmApiKey": "",
+      "llmModel": "llama-3.1-8b-instant",
+      "llmBaseUrl": "https://api.groq.com/openai/v1/chat/completions",
+      "llmTimeoutMs": 12000,
+      "supportLabel": "Falar com suporte",
+      "supportUrl": "mailto:suporte@rodaki.app",
       "eas": {
         "projectId": "YOUR_EAS_PROJECT_ID"
       }

@@ -15,6 +15,7 @@ export type PassengerTabParamList = {
   PassengerHome: undefined;
   Payment: undefined;
   Notifications: undefined;
+  PassengerChat: undefined;
 };
 export type PassengerStackParamList = {
   PassengerTabs: undefined;
@@ -30,6 +31,7 @@ export type DriverTabParamList = {
   PaymentReview: { passengerId?: string } | undefined;
   ManagePassengers: undefined;
   DriverProfile: undefined;
+  DriverChat: undefined;
 };
 
 // ─── Driver Stack Navigator (envolve as tabs) ─────────────────────────────────

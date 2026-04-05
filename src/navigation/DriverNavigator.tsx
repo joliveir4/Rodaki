@@ -13,6 +13,7 @@ import { DriverHomeScreen } from '@screens/driver/HomeScreen';
 import { PaymentReviewScreen } from '@screens/driver/PaymentReviewScreen';
 import { ManagePassengersScreen } from '@screens/driver/ManagePassengersScreen';
 import { AddPassengerScreen } from '../screens/driver/AddPassengerScreen';
+import { DriverChatbotScreen } from '@screens/driver/ChatbotScreen';
 import { DriverProfileScreen } from '@screens/driver/DriverProfileScreen';
 
 // ─── Navigators ───────────────────────────────────────────────────────────────
@@ -26,6 +27,7 @@ const tabIcons: Record<string, string> = {
   [DRIVER_ROUTES.PAYMENT_REVIEW]: '💰',
   [DRIVER_ROUTES.MANAGE_PASSENGERS]: '⚙️',
   [DRIVER_ROUTES.PROFILE]: '👤',
+  [DRIVER_ROUTES.CHAT]: '🤖',
 };
 
 const tabLabels: Record<string, string> = {
@@ -34,6 +36,7 @@ const tabLabels: Record<string, string> = {
   [DRIVER_ROUTES.PAYMENT_REVIEW]: 'Pagamentos',
   [DRIVER_ROUTES.MANAGE_PASSENGERS]: 'Gerenciar',
   [DRIVER_ROUTES.PROFILE]: 'Perfil',
+  [DRIVER_ROUTES.CHAT]: 'Chat IA',
 };
 
 // Tabs internas
@@ -78,6 +81,7 @@ const DriverTabs: React.FC = () => {
       />
       <Tab.Screen name={DRIVER_ROUTES.MANAGE_PASSENGERS} component={ManagePassengersScreen} />
       <Tab.Screen name={DRIVER_ROUTES.PROFILE} component={DriverProfileScreen} />
+      <Tab.Screen name={DRIVER_ROUTES.CHAT} component={DriverChatbotScreen} />
     </Tab.Navigator>
   );
 };
