@@ -57,14 +57,13 @@
       ]
     ],
     "extra": {
-      "llmApiKey": "",
-      "llmModel": "llama-3.1-8b-instant",
-      "llmBaseUrl": "https://api.groq.com/openai/v1/chat/completions",
+      "llmModel": "gemini-1.5-flash",
+      "llmBaseUrl": "https://generativelanguage.googleapis.com/v1beta",
       "llmTimeoutMs": 12000,
       "supportLabel": "Falar com suporte",
       "supportUrl": "mailto:suporte@rodaki.app",
       "eas": {
-        "projectId": "YOUR_EAS_PROJECT_ID"
+        "projectId": "547490667188"
       }
     }
   }

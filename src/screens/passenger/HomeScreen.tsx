@@ -283,7 +283,7 @@ export const PassengerHomeScreen: React.FC = () => {
       if (selectedOption === 'absent') {
         await markAbsent();
       } else {
-        await confirmPresence();
+        await confirmPresence(selectedOption);
       }
       setSaved(true);
     } finally {

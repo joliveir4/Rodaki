@@ -17,6 +17,7 @@ import { Colors, Typography, Spacing, BorderRadius, Shadows } from '@constants/t
 import { Input } from '@components/common/Input';
 import { Button } from '@components/common/Button';
 import { useAuthStore, selectAsDriver } from '@store/auth.store';
+import { usePassengersStore } from '@store/passengers.store';
 import { passengerService } from '@services/passenger.service';
 import type { DriverStackParamList } from '../../@types/navigation.types';
 
@@ -180,6 +181,7 @@ const INITIAL_VALUES: FormValues = {
 export const AddPassengerScreen: React.FC = () => {
   const navigation = useNavigation<Navigation>();
   const driver = useAuthStore(selectAsDriver);
+  const addPassenger = usePassengersStore((s) => s.addPassenger);
   const [values, setValues] = useState<FormValues>(INITIAL_VALUES);
   const [errors, setErrors] = useState<FormErrors>({});
   const [cepLoading, setCepLoading] = useState(false);
@@ -244,7 +246,7 @@ export const AddPassengerScreen: React.FC = () => {
 
     setSaving(true);
     try {
-      await passengerService.createPassenger(
+      const createdPassenger = await passengerService.createPassenger(
         {
           name: values.name.trim(),
           email: values.email.trim(),
@@ -262,9 +264,11 @@ export const AddPassengerScreen: React.FC = () => {
         driver.id,
       );
 
+      addPassenger(createdPassenger);
+
       Alert.alert(
-        'Passageiro cadastrado!',
-        `${values.name.trim()} foi adicionado com sucesso.\nSenha inicial: Trocar123`,
+        'Passageiro criado com sucesso',
+        'O passageiro foi vinculado ao motorista e ja aparece na lista.',
         [{ text: 'OK', onPress: () => navigation.goBack() }],
       );
     } catch (err: any) {
@@ -275,7 +279,7 @@ export const AddPassengerScreen: React.FC = () => {
     } finally {
       setSaving(false);
     }
-  }, [values, driver, navigation]);
+  }, [values, driver, navigation, addPassenger]);
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>

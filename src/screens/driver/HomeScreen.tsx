@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -11,11 +11,14 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { usePassengers } from '@hooks/usePassengers';
 import { useAuthStore, selectAsDriver } from '@store/auth.store';
+import { usePassengersStore } from '@store/passengers.store';
+import { passengerService } from '@services/passenger.service';
+import { authService } from '@services/auth.service';
 import { Badge } from '@components/common/Badge';
 import { EmptyState } from '@components/common/EmptyState';
 import { SearchBar } from '@components/common/SearchBar';
 import { Colors, Typography, Spacing, BorderRadius, Shadows } from '@constants/theme';
-import type { DailyPresence, PresenceStatus } from 'src/@types/trip.types';
+import type { CheckInOption, DailyPresence, PresenceStatus } from 'src/@types/trip.types';
 
 // ─── Filter Tabs Definition ───────────────────────────────────────────────────
 
@@ -28,35 +31,132 @@ const TABS: { key: FilterTab; label: string }[] = [
   { key: 'pending', label: 'Pendentes' },
 ];
 
+const checkInLabels: Record<CheckInOption, string> = {
+  going: 'Só vou',
+  returning: 'Só volto',
+  both: 'Vou e volto',
+  absent: 'Não vou',
+};
+
+const getTripSegmentBadge = (
+  presence: DailyPresence,
+): { label: string; variant: 'info' | 'warning' | 'error' | 'neutral' } => {
+  if (presence.checkIn) {
+    const variant = presence.checkIn === 'absent' ? 'error' : 'info';
+    return { label: checkInLabels[presence.checkIn], variant };
+  }
+
+  if (presence.status === 'absent') {
+    return { label: 'Não vou', variant: 'error' };
+  }
+
+  return { label: 'Pendente de confirmar', variant: 'warning' };
+};
+
 // ─── Screen ───────────────────────────────────────────────────────────────────
 
 export const DriverHomeScreen: React.FC = () => {
   const driver = useAuthStore(selectAsDriver);
+  const setUser = useAuthStore((s) => s.setUser);
+  const { passengers } = usePassengersStore();
+  const setPassengers = usePassengersStore((s) => s.setPassengers);
+  const setPassengersError = usePassengersStore((s) => s.setError);
   const {
     todayPresences,
-    confirmedCount,
-    absentCount,
-    pendingCount,
+    selectedDate,
     isLoading,
+    error,
   } = usePassengers();
 
   const [activeTab, setActiveTab] = useState<FilterTab>('all');
   const [search, setSearch] = useState('');
+  const didSyncDriver = useRef(false);
 
-  const totalCount = todayPresences.length;
+  useEffect(() => {
+    if (!driver?.id || didSyncDriver.current) return;
+
+    didSyncDriver.current = true;
+    authService.fetchUserData(driver.id).then(setUser).catch(() => undefined);
+  }, [driver?.id, setUser]);
+
+  useEffect(() => {
+    if (!driver) return;
+
+    const unsubscribe = passengerService.subscribeToPassengers(
+      driver.id,
+      (data) => setPassengers(data),
+      (err) => setPassengersError(err.message),
+    );
+
+    return unsubscribe;
+  }, [driver?.id, setPassengers, setPassengersError]);
+
+  useEffect(() => {
+    if (!driver?.passengerIds?.length) return;
+    if (passengers.length) return;
+
+    let isActive = true;
+
+    const fetchPassengers = async () => {
+      try {
+        const results = await Promise.all(
+          driver.passengerIds.map((id) => passengerService.getById(id)),
+        );
+        const resolved = results.filter(Boolean) as typeof passengers;
+        if (resolved.length && isActive) {
+          setPassengers(resolved);
+        }
+      } catch (err: any) {
+        if (isActive) {
+          setPassengersError(err?.message ?? 'Erro ao carregar passageiros');
+        }
+      }
+    };
+
+    fetchPassengers();
+
+    return () => {
+      isActive = false;
+    };
+  }, [driver?.passengerIds, passengers.length, setPassengers, setPassengersError]);
+
+  const mergedPresences = useMemo(() => {
+    const presenceByPassengerId = new Map(
+      todayPresences.map((presence) => [presence.passengerId, presence]),
+    );
+    const activePassengers = passengers.filter((passenger) => passenger.isActive !== false);
+    const activeIds = new Set(activePassengers.map((passenger) => passenger.id));
+
+    const merged = activePassengers.map((passenger) =>
+      presenceByPassengerId.get(passenger.id) ?? {
+        id: `${passenger.id}_${selectedDate}`,
+        passengerId: passenger.id,
+        passengerName: passenger.name,
+        date: selectedDate,
+        status: 'pending',
+      },
+    );
+
+    return merged;
+  }, [passengers, todayPresences, selectedDate]);
+
+  const totalCount = mergedPresences.length;
+  const confirmedCount = mergedPresences.filter((p) => p.status === 'confirmed').length;
+  const absentCount = mergedPresences.filter((p) => p.status === 'absent').length;
+  const pendingCount = mergedPresences.filter((p) => p.status === 'pending').length;
 
   // ─── Filtered list ────────────────────────────────────────────────────────
   const filtered = useMemo(() => {
     let list = activeTab === 'all'
-      ? todayPresences
-      : todayPresences.filter((p) => p.status === activeTab);
+      ? mergedPresences
+      : mergedPresences.filter((p) => p.status === activeTab);
 
     if (search.trim()) {
       const q = search.trim().toLowerCase();
       list = list.filter((p) => p.passengerName.toLowerCase().includes(q));
     }
     return list;
-  }, [todayPresences, activeTab, search]);
+  }, [mergedPresences, activeTab, search]);
 
   // ─── Render item ──────────────────────────────────────────────────────────
   const renderItem = ({ item }: { item: DailyPresence }) => (
@@ -122,6 +222,10 @@ export const DriverHomeScreen: React.FC = () => {
               placeholder="Buscar passageiro..."
               style={styles.search}
             />
+
+            {error ? (
+              <Text style={styles.errorText}>{error}</Text>
+            ) : null}
           </>
         }
         ListEmptyComponent={
@@ -146,18 +250,24 @@ export const DriverHomeScreen: React.FC = () => {
 
 // ─── PassengerRow ─────────────────────────────────────────────────────────────
 
-const PassengerRow: React.FC<{ item: DailyPresence }> = ({ item }) => (
-  <View style={rowStyles.container}>
-    <View style={rowStyles.info}>
-      <Text style={rowStyles.name}>{item.passengerName}</Text>
-      {/* route e horário serão vindos do Firestore quando integrado */}
-      <Text style={rowStyles.meta}>
-        {item.notes ?? 'Rota padrão'}
-      </Text>
+const PassengerRow: React.FC<{ item: DailyPresence }> = ({ item }) => {
+  const tripSegment = getTripSegmentBadge(item);
+
+  return (
+    <View style={rowStyles.container}>
+      <View style={rowStyles.info}>
+        <Text style={rowStyles.name}>{item.passengerName}</Text>
+        {/* route e horário serão vindos do Firestore quando integrado */}
+        <Text style={rowStyles.meta}>
+          {item.notes ?? 'Rota padrão'}
+        </Text>
+      </View>
+      <View style={rowStyles.badges}>
+        <Badge label={tripSegment.label} variant={tripSegment.variant} />
+      </View>
     </View>
-    <Badge presenceStatus={item.status} />
-  </View>
-);
+  );
+};
 
 const rowStyles = StyleSheet.create({
   container: {
@@ -172,6 +282,10 @@ const rowStyles = StyleSheet.create({
   info: {
     flex: 1,
     gap: 3,
+  },
+  badges: {
+    alignItems: 'flex-end',
+    gap: Spacing.xs,
   },
   name: {
     fontSize: Typography.fontSize.md,
@@ -328,5 +442,11 @@ const styles = StyleSheet.create({
   search: {
     marginHorizontal: Spacing.lg,
     marginBottom: Spacing.sm,
+  },
+  errorText: {
+    marginHorizontal: Spacing.lg,
+    marginBottom: Spacing.sm,
+    color: Colors.error,
+    fontSize: Typography.fontSize.sm,
   },
 });

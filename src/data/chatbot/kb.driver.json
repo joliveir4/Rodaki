@@ -1,0 +1,212 @@
+[
+  {
+    "id": "driver-1",
+    "role": "driver",
+    "question": "1) Não consigo fazer login",
+    "answer": "Confirme e-mail e senha. Se esqueceu, use “Esqueci minha senha”. Verifique a internet e tente novamente.",
+    "tags": []
+  },
+  {
+    "id": "driver-2",
+    "role": "driver",
+    "question": "2) Como eu me cadastro como motorista?",
+    "answer": "Vá em Cadastro, preencha os dados e selecione motorista. Depois faça login.",
+    "tags": []
+  },
+  {
+    "id": "driver-3",
+    "role": "driver",
+    "question": "3) Esqueci minha senha. Como redefinir?",
+    "answer": "Na tela de login, toque em “Esqueci minha senha” e informe seu e-mail.",
+    "tags": []
+  },
+  {
+    "id": "driver-4",
+    "role": "driver",
+    "question": "4) Estou recebendo “e-mail ou senha inválidos”. Por quê?",
+    "answer": "Revise digitação (sem espaços), tente de novo ou redefina a senha.",
+    "tags": []
+  },
+  {
+    "id": "driver-5",
+    "role": "driver",
+    "question": "5) Cadastrei, mas não consigo entrar. O que pode ser?",
+    "answer": "Confira e-mail do cadastro, tente redefinir a senha e verifique a conexão.",
+    "tags": []
+  },
+  {
+    "id": "driver-6",
+    "role": "driver",
+    "question": "6) O app abriu como passageiro, mas sou motorista. Como trocar?",
+    "answer": "Saia da conta e entre com o e-mail cadastrado como motorista.",
+    "tags": []
+  },
+  {
+    "id": "driver-7",
+    "role": "driver",
+    "question": "7) Como atualizo meus dados de perfil (nome/telefone)?",
+    "answer": "Em Perfil do Motorista, edite nome/telefone e salve.",
+    "tags": []
+  },
+  {
+    "id": "driver-8",
+    "role": "driver",
+    "question": "8) Como atualizo placa e modelo do veículo?",
+    "answer": "Em Perfil do Motorista, atualize placa/modelo e salve.",
+    "tags": []
+  },
+  {
+    "id": "driver-9",
+    "role": "driver",
+    "question": "9) Como cadastro ou altero minha chave PIX para receber?",
+    "answer": "Em Perfil do Motorista, ajuste a chave PIX e o tipo, e salve.",
+    "tags": []
+  },
+  {
+    "id": "driver-10",
+    "role": "driver",
+    "question": "10) Como adiciono um novo passageiro?",
+    "answer": "Em Gerenciar/Adicionar Passageiros, preencha os dados e finalize.",
+    "tags": []
+  },
+  {
+    "id": "driver-11",
+    "role": "driver",
+    "question": "11) Como edito os dados de um passageiro?",
+    "answer": "Abra o passageiro na lista, toque em Editar, atualize e salve.",
+    "tags": []
+  },
+  {
+    "id": "driver-12",
+    "role": "driver",
+    "question": "12) Como removo ou inativo um passageiro?",
+    "answer": "Selecione o passageiro e use a opção de inativar/remover (se disponível).",
+    "tags": []
+  },
+  {
+    "id": "driver-13",
+    "role": "driver",
+    "question": "13) Como associo um passageiro a uma rota?",
+    "answer": "Edite o passageiro e selecione a rota correspondente.",
+    "tags": []
+  },
+  {
+    "id": "driver-14",
+    "role": "driver",
+    "question": "14) Como configuro uma rota e horários de ida/volta?",
+    "answer": "Crie/edite a rota e informe horários de saída/retorno (se houver).",
+    "tags": []
+  },
+  {
+    "id": "driver-15",
+    "role": "driver",
+    "question": "15) Posso ativar/desativar uma rota?",
+    "answer": "Nos detalhes da rota, altere para ativo/inativo.",
+    "tags": []
+  },
+  {
+    "id": "driver-16",
+    "role": "driver",
+    "question": "16) Onde vejo a lista de passageiros que eu gerencio?",
+    "answer": "Abra a tela/aba de Passageiros para ver a lista.",
+    "tags": []
+  },
+  {
+    "id": "driver-17",
+    "role": "driver",
+    "question": "17) Onde vejo a agenda semanal (dias/trechos) de um passageiro?",
+    "answer": "Abra o passageiro e consulte a seção de agenda/semana.",
+    "tags": []
+  },
+  {
+    "id": "driver-18",
+    "role": "driver",
+    "question": "18) Como vejo quem confirmou presença hoje?",
+    "answer": "Na Home/Viagens do motorista, veja confirmados, ausentes e pendentes.",
+    "tags": []
+  },
+  {
+    "id": "driver-19",
+    "role": "driver",
+    "question": "19) O que significam “pendente”, “confirmado” e “ausente” na presença?",
+    "answer": "Pendente = não confirmou; Confirmado = ida/volta/ambos; Ausente = não vai.",
+    "tags": []
+  },
+  {
+    "id": "driver-20",
+    "role": "driver",
+    "question": "20) O passageiro não confirmou check-in. O que fazer?",
+    "answer": "Oriente o passageiro a abrir o app e confirmar o trecho do dia.",
+    "tags": []
+  },
+  {
+    "id": "driver-21",
+    "role": "driver",
+    "question": "21) Como o passageiro informa se vai só ida, só volta ou ambos?",
+    "answer": "Ele seleciona ida/volta/ambos (ou ausente) e isso aparece para você.",
+    "tags": []
+  },
+  {
+    "id": "driver-22",
+    "role": "driver",
+    "question": "22) Onde vejo os pagamentos pendentes dos passageiros?",
+    "answer": "Vá em Revisão de Pagamentos e consulte por mês/passageiro.",
+    "tags": []
+  },
+  {
+    "id": "driver-23",
+    "role": "driver",
+    "question": "23) O que significam os status do pagamento (pendente/em análise/aprovado/rejeitado)?",
+    "answer": "Pendente = aguardando; Em análise = em revisão; Aprovado = ok; Rejeitado = problema.",
+    "tags": []
+  },
+  {
+    "id": "driver-24",
+    "role": "driver",
+    "question": "24) Como aprovo um pagamento com comprovante?",
+    "answer": "Em Revisão de Pagamentos, confira o comprovante e marque como aprovado.",
+    "tags": []
+  },
+  {
+    "id": "driver-25",
+    "role": "driver",
+    "question": "25) Como rejeito um pagamento e informar o motivo?",
+    "answer": "Selecione rejeitar e descreva o motivo (valor, mês, imagem, etc.).",
+    "tags": []
+  },
+  {
+    "id": "driver-26",
+    "role": "driver",
+    "question": "26) O comprovante não abre ou dá erro. O que faço?",
+    "answer": "Verifique internet e peça reenvio do comprovante se necessário.",
+    "tags": []
+  },
+  {
+    "id": "driver-27",
+    "role": "driver",
+    "question": "27) O valor pago está diferente da mensalidade. Como proceder?",
+    "answer": "Confira mensalidade/mês e rejeite com o motivo, pedindo correção.",
+    "tags": []
+  },
+  {
+    "id": "driver-28",
+    "role": "driver",
+    "question": "28) Como vejo um resumo de pagamentos por passageiro (meses pagos e pendentes)?",
+    "answer": "Consulte a área de pagamentos e abra o histórico/resumo do passageiro.",
+    "tags": []
+  },
+  {
+    "id": "driver-29",
+    "role": "driver",
+    "question": "29) Um passageiro quer pagar em dinheiro/transferência. Como registro o método?",
+    "answer": "Selecione o método (dinheiro/transferência/pix) ou registre observação na revisão.",
+    "tags": []
+  },
+  {
+    "id": "driver-30",
+    "role": "driver",
+    "question": "30) Não estou recebendo notificações (avisos de pagamento/agenda).",
+    "answer": "Ative permissões no celular, reinicie o app e teste novamente com internet.",
+    "tags": []
+  }
+]

@@ -12,7 +12,6 @@ export const PASSENGER_ROUTES = {
   HOME: 'PassengerHome',
   PAYMENT: 'Payment',
   NOTIFICATIONS: 'Notifications',
-  CHAT: 'PassengerChat',
 } as const;
 
 export const PASSENGER_STACK_ROUTES = {

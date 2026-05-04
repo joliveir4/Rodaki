@@ -5,9 +5,20 @@ import type {
   ChatbotConfig,
   ChatbotFallback,
   ChatbotResult,
+  KnowledgeBaseEntry,
 } from 'src/@types/chatbot.types';
+import { createKnowledgeBaseRetriever, type KnowledgeBaseMatch } from './chatbot/retriever';
+import { getSocialResponse } from './chatbot/socialIntents';
 
 const MAX_INPUT_LENGTH = 600;
+const RETRIEVER_TOP_K = 3;
+const RETRIEVER_MIN_SCORE = 2.2;
+const RETRIEVER_MIN_COVERAGE = 0.2;
+
+const knowledgeBase = (require('../data/chatbot/kb.driver.json') as KnowledgeBaseEntry[]).filter(
+  (entry) => entry.role === 'driver',
+);
+const knowledgeBaseRetriever = createKnowledgeBaseRetriever(knowledgeBase);
 
 class ChatbotServiceError extends Error {
   constructor(message: string, public readonly code: string) {
@@ -32,24 +43,56 @@ const chatbotContext = {
 const fallbackBaseText =
   'Nao consegui ajudar com seguranca nessa pergunta. Posso direcionar voce para o suporte humano da Rodaki.';
 
+function getEnvVar(key: string): string {
+  const env = ((globalThis as any)?.process?.env ?? {}) as Record<string, string | undefined>;
+  return String(env[key] ?? '').trim();
+}
+
+function toTimeoutMs(value: string | number | undefined, fallback: number): number {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed) || parsed <= 0) return fallback;
+  return parsed;
+}
+
+function buildGeminiUrl(config: ChatbotConfig): string {
+  const baseUrl = config.baseUrl.replace(/\/+$/, '');
+  const model = config.model.replace(/^models\//, '');
+
+  if (baseUrl.includes(':generateContent')) {
+    return baseUrl;
+  }
+
+  if (baseUrl.endsWith('/models')) {
+    return `${baseUrl}/${model}:generateContent`;
+  }
+
+  return `${baseUrl}/models/${model}:generateContent`;
+}
+
 function getConfig(): ChatbotConfig {
   const extra = (Constants.expoConfig?.extra ?? {}) as Record<string, string | number | undefined>;
-  const apiKey = String(extra.llmApiKey ?? '').trim();
+  const apiKey = getEnvVar('EXPO_PUBLIC_LLM_API_KEY') || String(extra.llmApiKey ?? '').trim();
 
   if (!apiKey) {
     throw new ChatbotServiceError(
-      'Chave da IA nao configurada. Defina expo.extra.llmApiKey.',
+      'Chave da IA nao configurada. Defina EXPO_PUBLIC_LLM_API_KEY.',
       'missing_api_key',
     );
   }
 
+  const model = getEnvVar('EXPO_PUBLIC_LLM_MODEL') || String(extra.llmModel ?? 'gemini-1.5-flash').trim();
+  const baseUrl =
+    getEnvVar('EXPO_PUBLIC_LLM_BASE_URL') ||
+    String(extra.llmBaseUrl ?? 'https://generativelanguage.googleapis.com/v1beta').trim();
+  const timeoutMs = toTimeoutMs(getEnvVar('EXPO_PUBLIC_LLM_TIMEOUT_MS') || extra.llmTimeoutMs, 12000);
+
   return {
     apiKey,
-    model: String(extra.llmModel ?? 'llama-3.1-8b-instant').trim(),
-    baseUrl: String(extra.llmBaseUrl ?? 'https://api.groq.com/openai/v1/chat/completions').trim(),
-    supportLabel: String(extra.supportLabel ?? 'Falar com suporte').trim(),
-    supportUrl: String(extra.supportUrl ?? 'mailto:suporte@rodaki.app').trim(),
-    timeoutMs: Number(extra.llmTimeoutMs ?? 12000),
+    model,
+    baseUrl,
+    supportLabel: String(extra.supportLabel ?? (getEnvVar('EXPO_PUBLIC_SUPPORT_LABEL') || 'Falar com suporte')).trim(),
+    supportUrl: String(extra.supportUrl ?? (getEnvVar('EXPO_PUBLIC_SUPPORT_URL') || 'mailto:suporte@rodaki.app')).trim(),
+    timeoutMs,
   };
 }
 
@@ -84,9 +127,32 @@ function getSystemPrompt(context: ChatSessionContext): string {
     'Responda em portugues do Brasil, de forma objetiva e amigavel.',
     `Escopo permitido: ${chatbotContext.capabilities.join('; ')}.`,
     `Escopo proibido: ${chatbotContext.restrictions.join('; ')}.`,
+    'Saudacoes e cortesias simples podem ser respondidas diretamente, sem fallback.',
+    'Responda apenas com base na base de conhecimento fornecida.',
     'Se a pergunta estiver fora de escopo ou sem confianca, inicie a resposta com [FALLBACK].',
     'Quando estiver em escopo, forneca passos praticos com base no uso do app.',
   ].join(' ');
+}
+
+function buildKnowledgeContext(matches: KnowledgeBaseMatch[]): string {
+  if (!matches.length) return 'Sem itens relevantes.';
+
+  return matches
+    .map((match, index) => {
+      const question = match.entry.question.trim();
+      const answer = match.entry.answer.trim();
+      return `Item ${index + 1}\nPergunta: ${question}\nResposta: ${answer}`;
+    })
+    .join('\n\n');
+}
+
+function buildUserPrompt(message: string, matches: KnowledgeBaseMatch[]): string {
+  return [
+    `Pergunta do usuario: ${message}`,
+    'Base de conhecimento (use somente estas informacoes):',
+    buildKnowledgeContext(matches),
+    'Se nao houver resposta clara na base, inicie com [FALLBACK].',
+  ].join('\n');
 }
 
 function parseProviderText(rawText: string, config: ChatbotConfig): ChatbotResult {
@@ -110,34 +176,70 @@ async function requestCompletion(
   config: ChatbotConfig,
   context: ChatSessionContext,
   message: string,
+  matches: KnowledgeBaseMatch[],
 ): Promise<ChatbotResult> {
+  const url = buildGeminiUrl(config);
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), config.timeoutMs);
 
   try {
-    const response = await fetch(config.baseUrl, {
+    const userPrompt = buildUserPrompt(message, matches);
+    const response = await fetch(url, {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${config.apiKey}`,
+        'x-goog-api-key': config.apiKey,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: config.model,
-        temperature: 0.2,
-        messages: [
-          { role: 'system', content: getSystemPrompt(context) },
-          { role: 'user', content: message },
+        systemInstruction: {
+          parts: [{ text: getSystemPrompt(context) }],
+        },
+        contents: [
+          {
+            role: 'user',
+            parts: [{ text: userPrompt }],
+          },
         ],
+        generationConfig: {
+          temperature: 0.1,
+        },
       }),
       signal: controller.signal,
     });
 
+    const data = await response.json().catch(() => null);
+
     if (!response.ok) {
-      throw new ChatbotServiceError(`Erro do provedor (${response.status})`, 'provider_http_error');
+      const providerMessage = String(data?.error?.message ?? '').trim();
+      if (response.status === 401 || response.status === 403) {
+        throw new ChatbotServiceError(
+          providerMessage || 'Falha de autenticacao no provedor da IA',
+          'invalid_api_key',
+        );
+      }
+      if (response.status === 400) {
+        const code = /model/i.test(providerMessage) ? 'invalid_model' : 'invalid_request';
+        throw new ChatbotServiceError(providerMessage || 'Requisicao invalida para o provedor da IA', code);
+      }
+      throw new ChatbotServiceError(
+        providerMessage || `Erro do provedor (${response.status})`,
+        'provider_http_error',
+      );
     }
 
-    const data = await response.json();
-    const content = data?.choices?.[0]?.message?.content;
+    const finishReason = String(data?.candidates?.[0]?.finishReason ?? '').toUpperCase();
+    const blockReason = String(data?.promptFeedback?.blockReason ?? '').toUpperCase();
+    if (finishReason === 'SAFETY' || !!blockReason) {
+      throw new ChatbotServiceError('Resposta bloqueada por seguranca do provedor da IA', 'safety_blocked');
+    }
+
+    const parts = data?.candidates?.[0]?.content?.parts;
+    const content = Array.isArray(parts)
+      ? parts
+          .map((part: any) => (typeof part?.text === 'string' ? part.text : ''))
+          .join('\n')
+          .trim()
+      : '';
 
     if (typeof content !== 'string' || !content.trim()) {
       throw new ChatbotServiceError('Resposta vazia do provedor', 'invalid_provider_response');
@@ -185,6 +287,11 @@ export const chatbotService = {
       throw new ChatbotServiceError(validationError, 'invalid_input');
     }
 
+    const socialResponse = getSocialResponse(input);
+    if (socialResponse) {
+      return { message: createMessage('assistant', socialResponse) };
+    }
+
     let config: ChatbotConfig;
     try {
       config = getConfig();
@@ -206,16 +313,53 @@ export const chatbotService = {
     }
 
     try {
-      return await requestCompletion(config, context, input.trim());
-    } catch (error: any) {
-      const reason: ChatbotFallback['reason'] =
-        error?.code === 'network_error' || error?.code === 'timeout' ? 'network_error' : 'provider_error';
+      if (!knowledgeBase.length) {
+        const fallback = toFallback(
+          config,
+          'configuration_error',
+          'A base de conhecimento nao esta configurada. Fale com o suporte.',
+        );
+        return { message: createMessage('assistant', fallback.description, fallback), fallback };
+      }
 
-      const fallback = toFallback(
-        config,
-        reason,
-        'Nao consegui processar sua mensagem agora. Tente novamente em instantes ou fale com o suporte.',
-      );
+      const matches = knowledgeBaseRetriever.search(input, { topK: RETRIEVER_TOP_K });
+      const bestMatch = matches[0];
+
+      if (!bestMatch || bestMatch.score < RETRIEVER_MIN_SCORE || bestMatch.coverage < RETRIEVER_MIN_COVERAGE) {
+        if (__DEV__) {
+          console.info('chatbot.no_match', {
+            question: input,
+            score: bestMatch?.score ?? 0,
+            coverage: bestMatch?.coverage ?? 0,
+          });
+        }
+
+        const fallback = toFallback(
+          config,
+          'low_confidence',
+          'Nao encontrei uma resposta confiavel na base de conhecimento. Posso direcionar voce ao suporte.',
+        );
+
+        return { message: createMessage('assistant', fallback.description, fallback), fallback };
+      }
+
+      return await requestCompletion(config, context, input.trim(), matches);
+    } catch (error: any) {
+      const isNetworkError = error?.code === 'network_error' || error?.code === 'timeout';
+      const reason: ChatbotFallback['reason'] = isNetworkError ? 'network_error' : 'provider_error';
+
+      let description = 'Nao consegui processar sua mensagem agora. Tente novamente em instantes ou fale com o suporte.';
+      if (error?.code === 'invalid_api_key') {
+        description = 'Nao foi possivel autenticar no servico de IA. Verifique a chave configurada no app.';
+      } else if (error?.code === 'invalid_model' || error?.code === 'invalid_request') {
+        description = 'A configuracao da IA esta invalida. Revise modelo e endpoint da integracao.';
+      } else if (error?.code === 'timeout') {
+        description = 'A resposta da IA demorou demais. Tente novamente em instantes.';
+      } else if (error?.code === 'network_error') {
+        description = 'Falha de conexao ao consultar a IA. Verifique sua internet e tente novamente.';
+      }
+
+      const fallback = toFallback(config, reason, description);
 
       return {
         message: createMessage('assistant', fallback.description, fallback),

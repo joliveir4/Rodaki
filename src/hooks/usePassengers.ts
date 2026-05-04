@@ -1,6 +1,7 @@
 import { useEffect, useCallback } from 'react';
 import { useTripStore } from '@store/trip.store';
 import { useAuthStore, selectAsDriver, selectAsPassenger } from '@store/auth.store';
+import type { CheckInOption } from 'src/@types/trip.types';
 import { tripService } from '@services/trip.service';
 import { getTodayISO } from '@utils/formatters';
 
@@ -32,7 +33,11 @@ export const usePassengers = () => {
       driver.id,
       selectedDate,
       (presences) => {
+        setError(null);
         setTodayPresences(presences);
+      },
+      (err) => {
+        setError(err?.message ?? 'Erro ao carregar presenças');
       },
     );
 
@@ -61,7 +66,7 @@ export const usePassengers = () => {
 
   // ─── Passageiro: confirmar / cancelar ─────────────────────────────────────
 
-  const confirmPresence = useCallback(async () => {
+  const confirmPresence = useCallback(async (checkIn: CheckInOption) => {
     if (!passenger) return;
 
     try {
@@ -70,6 +75,7 @@ export const usePassengers = () => {
         passenger.id,
         passenger.name,
         passenger.driverId,
+        checkIn,
       );
     } catch (err: any) {
       setError(err.message ?? 'Erro ao confirmar presença');

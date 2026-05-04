@@ -44,3 +44,11 @@ export interface ChatbotConfig {
   supportUrl: string;
   timeoutMs: number;
 }
+
+export interface KnowledgeBaseEntry {
+  id: string;
+  role: 'driver';
+  question: string;
+  answer: string;
+  tags?: string[];
+}

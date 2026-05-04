@@ -10,7 +10,6 @@ import { Colors, Typography } from '@constants/theme';
 
 import { PassengerHomeScreen } from '@screens/passenger/HomeScreen';
 import { NotificationsScreen } from '@screens/passenger/NotificationsScreen';
-import { PassengerChatbotScreen } from '@screens/passenger/ChatbotScreen';
 import {
   PassengerScheduleScreen,
   PassengerUploadReceiptScreen,
@@ -26,14 +25,12 @@ const tabIcons: Record<string, string> = {
   [PASSENGER_ROUTES.HOME]: '🏠',
   [PASSENGER_ROUTES.PAYMENT]: '💳',
   [PASSENGER_ROUTES.NOTIFICATIONS]: '🔔',
-  [PASSENGER_ROUTES.CHAT]: '🤖',
 };
 
 const tabLabels: Record<string, string> = {
   [PASSENGER_ROUTES.HOME]: 'Início',
   [PASSENGER_ROUTES.PAYMENT]: 'Pagamento',
   [PASSENGER_ROUTES.NOTIFICATIONS]: 'Notificações',
-  [PASSENGER_ROUTES.CHAT]: 'Chat IA',
 };
 
 const PassengerTabs: React.FC = () => (
@@ -63,7 +60,6 @@ const PassengerTabs: React.FC = () => (
   >
     <Tab.Screen name={PASSENGER_ROUTES.HOME} component={PassengerHomeScreen} />
     <Tab.Screen name={PASSENGER_ROUTES.NOTIFICATIONS} component={NotificationsScreen} />
-    <Tab.Screen name={PASSENGER_ROUTES.CHAT} component={PassengerChatbotScreen} />
   </Tab.Navigator>
 );
 

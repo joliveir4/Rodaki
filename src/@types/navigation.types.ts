@@ -15,7 +15,6 @@ export type PassengerTabParamList = {
   PassengerHome: undefined;
   Payment: undefined;
   Notifications: undefined;
-  PassengerChat: undefined;
 };
 export type PassengerStackParamList = {
   PassengerTabs: undefined;

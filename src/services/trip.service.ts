@@ -31,6 +31,7 @@ export const tripService = {
     driverId: string,
     date: string,
     callback: (presences: DailyPresence[]) => void,
+    onError?: (error: Error) => void,
   ): Unsubscribe {
     const q = query(
       collection(firestore, PRESENCES_COLLECTION),
@@ -38,13 +39,19 @@ export const tripService = {
       where('date', '==', date),
     );
 
-    return onSnapshot(q, (snapshot) => {
-      const presences = snapshot.docs.map((d) => ({
-        ...d.data(),
-        id: d.id,
-      })) as DailyPresence[];
-      callback(presences);
-    });
+    return onSnapshot(
+      q,
+      (snapshot) => {
+        const presences = snapshot.docs.map((d) => ({
+          ...d.data(),
+          id: d.id,
+        })) as DailyPresence[];
+        callback(presences);
+      },
+      (error) => {
+        onError?.(error);
+      },
+    );
   },
 
   /**
@@ -54,6 +61,7 @@ export const tripService = {
     passengerId: string,
     passengerName: string,
     driverId: string,
+    checkIn: DailyPresence['checkIn'],
     date: string = getTodayISO(),
   ): Promise<void> {
     const presenceId = `${passengerId}_${date}`;
@@ -66,6 +74,7 @@ export const tripService = {
       driverId,
       date,
       status: 'confirmed' as PresenceStatus,
+      checkIn,
       confirmedAt: serverTimestamp(),
     });
   },
@@ -89,6 +98,7 @@ export const tripService = {
       driverId,
       date,
       status: 'absent' as PresenceStatus,
+      checkIn: 'absent',
     });
   },
 

@@ -21,7 +21,7 @@ import type { Passenger } from 'src/@types/user.types';
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const USERS_COLLECTION = 'users';
-const DEFAULT_PASSWORD = 'Trocar123';
+const DEFAULT_PASSWORD = 'Trocar@1234';
 
 // ─── Input Types ──────────────────────────────────────────────────────────────
 
@@ -54,53 +54,78 @@ export const passengerService = {
    *  4. Desconecta a sessão do app secundário
    */
   async createPassenger(data: CreatePassengerData, driverId: string): Promise<Passenger> {
-    // 1. Criar conta no Auth (app secundário → não afeta sessão do motorista)
-    const credential = await createUserWithEmailAndPassword(
-      secondaryAuth,
-      data.email,
-      DEFAULT_PASSWORD,
-    );
-
-    const uid = credential.user.uid;
-
-    await updateProfile(credential.user, { displayName: data.name });
-
-    // 2. Salvar documento do passageiro no Firestore
-    const passengerDoc: Omit<Passenger, 'createdAt' | 'updatedAt'> & {
-      createdAt: ReturnType<typeof serverTimestamp>;
-      updatedAt: ReturnType<typeof serverTimestamp>;
-    } = {
-      id: uid,
+    console.log('🧑‍🎓 Criando passageiro:', {
       name: data.name,
       email: data.email,
-      phone: data.phone,
-      role: 'passenger',
       driverId,
-      routeId: '',        // Será associado quando o motorista criar rotas
-      monthlyFee: 0,      // Definido pelo motorista posteriormente
-      isActive: true,
-      university: data.university,
-      address: data.address,
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp(),
-    };
-
-    await setDoc(doc(firestore, USERS_COLLECTION, uid), passengerDoc);
-
-    // 3. Adicionar uid ao array passengerIds do motorista
-    await updateDoc(doc(firestore, USERS_COLLECTION, driverId), {
-      passengerIds: arrayUnion(uid),
-      updatedAt: serverTimestamp(),
     });
 
-    // 4. Desconecta a sessão do app secundário imediatamente
-    await secondaryAuth.signOut();
+    try {
+      // 1. Criar conta no Auth (app secundário → não afeta sessão do motorista)
+      console.log('🔐 Criando usuário no Firebase Auth (secondaryAuth)...');
+      const credential = await createUserWithEmailAndPassword(
+        secondaryAuth,
+        data.email,
+        DEFAULT_PASSWORD,
+      );
 
-    return {
-      ...passengerDoc,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
+      const uid = credential.user.uid;
+      console.log('✅ Firebase Auth criado. UID:', uid);
+
+      await updateProfile(credential.user, { displayName: data.name });
+      console.log('✅ Profile atualizado com displayName:', data.name);
+
+      // 2. Salvar documento do passageiro no Firestore
+      const passengerDoc: Omit<Passenger, 'createdAt' | 'updatedAt'> & {
+        createdAt: ReturnType<typeof serverTimestamp>;
+        updatedAt: ReturnType<typeof serverTimestamp>;
+      } = {
+        id: uid,
+        name: data.name,
+        email: data.email,
+        phone: data.phone,
+        role: 'passenger',
+        driverId,
+        routeId: '',        // Será associado quando o motorista criar rotas
+        monthlyFee: 0,      // Definido pelo motorista posteriormente
+        isActive: true,
+        university: data.university,
+        address: data.address,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      };
+
+      console.log('📄 Salvando passageiro no Firestore:', { uid, driverId });
+      await setDoc(doc(firestore, USERS_COLLECTION, uid), passengerDoc);
+      console.log('✅ Documento do passageiro salvo');
+
+      // 3. Adicionar uid ao array passengerIds do motorista
+      console.log('➕ Atualizando motorista com passengerId:', uid);
+      await updateDoc(doc(firestore, USERS_COLLECTION, driverId), {
+        passengerIds: arrayUnion(uid),
+        updatedAt: serverTimestamp(),
+      });
+      console.log('✅ Motorista atualizado');
+
+      return {
+        ...passengerDoc,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+    } catch (err: any) {
+      console.error('❌ Erro ao criar passageiro:', err);
+      console.error('❌ Error code:', err?.code);
+      console.error('❌ Error message:', err?.message);
+      throw err;
+    } finally {
+      // 4. Desconecta a sessão do app secundário imediatamente
+      try {
+        await secondaryAuth.signOut();
+        console.log('🔓 secondaryAuth desconectado');
+      } catch (signOutErr) {
+        console.warn('⚠️ Falha ao desconectar secondaryAuth:', signOutErr);
+      }
+    }
   },
 
   /**
@@ -114,7 +139,6 @@ export const passengerService = {
   ): Unsubscribe {
     const q = query(
       collection(firestore, USERS_COLLECTION),
-      where('role', '==', 'passenger'),
       where('driverId', '==', driverId),
     );
 
