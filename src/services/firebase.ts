@@ -7,14 +7,20 @@ import { getStorage } from 'firebase/storage';
 // ⚠️  Substitua pelos valores do seu projeto no Firebase Console
 //     https://console.firebase.google.com → Configurações do projeto → Seus apps
 
+function getEnvVar(key: string): string {
+  const env = ((globalThis as any)?.process?.env ?? {}) as Record<string, string | undefined>;
+  return String(env[key] ?? '').trim();
+}
+
 const firebaseConfig = {
-  apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY ?? '',
-  authDomain: process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN ?? '',
-  projectId: process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID ?? '',
-  storageBucket: process.env.EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET ?? '',
-  messagingSenderId: process.env.EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID ?? '',
-  appId: process.env.EXPO_PUBLIC_FIREBASE_APP_ID ?? '',
+  apiKey: getEnvVar('EXPO_PUBLIC_FIREBASE_API_KEY'),
+  authDomain: getEnvVar('EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN'),
+  projectId: getEnvVar('EXPO_PUBLIC_FIREBASE_PROJECT_ID'),
+  storageBucket: getEnvVar('EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET'),
+  messagingSenderId: getEnvVar('EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID'),
+  appId: getEnvVar('EXPO_PUBLIC_FIREBASE_APP_ID'),
 };
+
 
 // ─── Singleton Initialization ─────────────────────────────────────────────────
 // Evita re-inicialização em hot reload

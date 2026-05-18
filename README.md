@@ -20,7 +20,16 @@ npm install
 - Crie um projeto no Firebase e habilite:
   - Autenticacao (Email/Senha)
   - Firestore
-- Copie as credenciais e preencha o objeto `firebaseConfig` em [src/services/firebase.ts](src/services/firebase.ts)
+- Copie as credenciais e preencha o arquivo [.env](.env) com:
+
+```bash
+EXPO_PUBLIC_FIREBASE_API_KEY=SUA_CHAVE
+EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN=SEU_DOMINIO
+EXPO_PUBLIC_FIREBASE_PROJECT_ID=SEU_PROJETO
+EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET=SEU_BUCKET
+EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=SEU_SENDER_ID
+EXPO_PUBLIC_FIREBASE_APP_ID=SEU_APP_ID
+```
 
 3) Configure a chave do chatbot
 
@@ -28,7 +37,7 @@ npm install
 
 ```bash
 EXPO_PUBLIC_LLM_API_KEY=SUA_CHAVE
-EXPO_PUBLIC_LLM_MODEL=gemini-1.5-flash
+EXPO_PUBLIC_LLM_MODEL=gemini-2.5-flash
 EXPO_PUBLIC_LLM_BASE_URL=https://generativelanguage.googleapis.com/v1beta
 EXPO_PUBLIC_LLM_TIMEOUT_MS=12000
 ```
