@@ -4,65 +4,65 @@ import { MD3LightTheme } from 'react-native-paper';
 
 export const Colors = {
   // Brand
-  primary: '#2563EB',       // Azul principal
-  primaryLight: '#DBEAFE',
-  primaryDark: '#1D4ED8',
+  primary: '#1A4FCC',
+  primaryLight: '#E6ECFF',
+  primaryDark: '#123B99',
 
-  secondary: '#10B981',     // Verde confirmação
-  secondaryLight: '#D1FAE5',
-  secondaryDark: '#059669',
+  secondary: '#FFD700',
+  secondaryLight: '#FFF4B3',
+  secondaryDark: '#E5C100',
 
   // Feedback
-  success: '#22C55E',
-  successLight: '#DCFCE7',
-  warning: '#F59E0B',
-  warningLight: '#FEF3C7',
-  error: '#EF4444',
-  errorLight: '#FEE2E2',
-  info: '#3B82F6',
-  infoLight: '#DBEAFE',
+  success: '#1B873F',
+  successLight: '#DFF2E6',
+  warning: '#B7791F',
+  warningLight: '#FCECC5',
+  error: '#D32F2F',
+  errorLight: '#F7D6D6',
+  info: '#1A4FCC',
+  infoLight: '#E6ECFF',
 
   // Neutrals
   white: '#FFFFFF',
-  background: '#F8FAFC',
+  background: '#FFFFFF',
   surface: '#FFFFFF',
-  surfaceVariant: '#F1F5F9',
+  surfaceVariant: '#F5F7FB',
 
   // Text
-  textPrimary: '#0F172A',
-  textSecondary: '#475569',
-  textDisabled: '#94A3B8',
+  textPrimary: '#121212',
+  textSecondary: '#3C3C3C',
+  textDisabled: '#8E8E8E',
   textInverse: '#FFFFFF',
 
   // Border
-  border: '#E2E8F0',
-  borderFocus: '#2563EB',
+  border: '#E0E4EA',
+  borderFocus: '#1A4FCC',
 
   // Status badges
-  statusPending: '#F59E0B',
-  statusConfirmed: '#22C55E',
-  statusAbsent: '#EF4444',
-  statusReview: '#8B5CF6',
-  statusApproved: '#22C55E',
-  statusRejected: '#EF4444',
+  statusPending: '#B7791F',
+  statusConfirmed: '#1B873F',
+  statusAbsent: '#D32F2F',
+  statusReview: '#1A4FCC',
+  statusApproved: '#1B873F',
+  statusRejected: '#D32F2F',
 } as const;
 
 // ─── Typography ───────────────────────────────────────────────────────────────
 
 export const Typography = {
   fontFamily: {
-    regular: 'System',
-    medium: 'System',
-    bold: 'System',
+    regular: 'Inter',
+    medium: 'Inter-Medium',
+    bold: 'Inter-Bold',
   },
   fontSize: {
-    xs: 11,
-    sm: 13,
-    md: 15,
-    lg: 17,
-    xl: 20,
-    xxl: 24,
-    xxxl: 30,
+    xs: 14,
+    sm: 16,
+    md: 18,
+    lg: 20,
+    xl: 24,
+    xxl: 28,
+    xxxl: 32,
   },
   fontWeight: {
     regular: '400' as const,

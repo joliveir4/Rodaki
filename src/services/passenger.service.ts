@@ -54,7 +54,7 @@ export const passengerService = {
    *  4. Desconecta a sessão do app secundário
    */
   async createPassenger(data: CreatePassengerData, driverId: string): Promise<Passenger> {
-    console.log('🧑‍🎓 Criando passageiro:', {
+    console.log('Criando passageiro:', {
       name: data.name,
       email: data.email,
       driverId,
@@ -70,10 +70,10 @@ export const passengerService = {
       );
 
       const uid = credential.user.uid;
-      console.log('✅ Firebase Auth criado. UID:', uid);
+      console.log('Firebase Auth criado. UID:', uid);
 
       await updateProfile(credential.user, { displayName: data.name });
-      console.log('✅ Profile atualizado com displayName:', data.name);
+      console.log('Profile atualizado com displayName:', data.name);
 
       // 2. Salvar documento do passageiro no Firestore
       const passengerDoc: Omit<Passenger, 'createdAt' | 'updatedAt'> & {
@@ -97,15 +97,15 @@ export const passengerService = {
 
       console.log('📄 Salvando passageiro no Firestore:', { uid, driverId });
       await setDoc(doc(firestore, USERS_COLLECTION, uid), passengerDoc);
-      console.log('✅ Documento do passageiro salvo');
+      console.log('Documento do passageiro salvo');
 
       // 3. Adicionar uid ao array passengerIds do motorista
-      console.log('➕ Atualizando motorista com passengerId:', uid);
+      console.log('Atualizando motorista com passengerId:', uid);
       await updateDoc(doc(firestore, USERS_COLLECTION, driverId), {
         passengerIds: arrayUnion(uid),
         updatedAt: serverTimestamp(),
       });
-      console.log('✅ Motorista atualizado');
+      console.log('Motorista atualizado');
 
       return {
         ...passengerDoc,
@@ -113,9 +113,9 @@ export const passengerService = {
         updatedAt: new Date(),
       };
     } catch (err: any) {
-      console.error('❌ Erro ao criar passageiro:', err);
-      console.error('❌ Error code:', err?.code);
-      console.error('❌ Error message:', err?.message);
+      console.error('Erro ao criar passageiro:', err);
+      console.error('Error code:', err?.code);
+      console.error('Error message:', err?.message);
       throw err;
     } finally {
       // 4. Desconecta a sessão do app secundário imediatamente
@@ -123,7 +123,7 @@ export const passengerService = {
         await secondaryAuth.signOut();
         console.log('🔓 secondaryAuth desconectado');
       } catch (signOutErr) {
-        console.warn('⚠️ Falha ao desconectar secondaryAuth:', signOutErr);
+        console.warn('Falha ao desconectar secondaryAuth:', signOutErr);
       }
     }
   },

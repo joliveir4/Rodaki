@@ -15,7 +15,7 @@ export const NotificationsScreen: React.FC = () => {
       </View>
 
       <EmptyState
-        icon="🔔"
+        iconName="bell-outline"
         title="Sem notificações"
         description="Você será notificado sobre confirmações de pagamento e avisos do motorista."
       />

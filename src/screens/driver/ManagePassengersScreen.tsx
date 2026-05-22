@@ -17,6 +17,7 @@ import { Colors, Typography, Spacing, BorderRadius, Shadows } from '@constants/t
 import { Avatar } from '@components/common/Avatar';
 import { Badge } from '@components/common/Badge';
 import { Button } from '@components/common/Button';
+import { EmptyState } from '@components/common/EmptyState';
 import { SearchBar } from '@components/common/SearchBar';
 import { FilterDropdown } from '@components/common/FilterDropdown';
 import { formatPhone } from '@utils/formatters';
@@ -121,19 +122,17 @@ const PassengerCard: React.FC<PassengerCardProps> = ({ item, onEdit, onPayment }
     {/* Ações */}
     <View style={cardStyles.actionRow}>
       <Button
-        label="✏️  Editar"
+        label="Editar"
         variant="primary"
         onPress={() => onEdit(item.id)}
         style={cardStyles.editBtn}
       />
-      <TouchableOpacity
-        style={cardStyles.paymentBtn}
+      <Button
+        label="Pagamento"
+        variant="outline"
         onPress={() => onPayment(item.id)}
-        activeOpacity={0.7}
-        accessibilityLabel="Ver pagamento"
-      >
-        <Text style={cardStyles.paymentBtnText}>$</Text>
-      </TouchableOpacity>
+        style={cardStyles.paymentBtn}
+      />
     </View>
   </View>
 );
@@ -281,15 +280,15 @@ export const ManagePassengersScreen: React.FC = () => {
           </>
         }
         ListEmptyComponent={
-          <View style={styles.empty}>
-            <Text style={styles.emptyIcon}>👤</Text>
-            <Text style={styles.emptyTitle}>Nenhum passageiro encontrado</Text>
-            <Text style={styles.emptySubtitle}>
-              {search || statusFilter !== 'all'
+          <EmptyState
+            iconName="account-off-outline"
+            title="Nenhum passageiro encontrado"
+            description={
+              search || statusFilter !== 'all'
                 ? 'Tente ajustar os filtros ou a busca.'
-                : 'Adicione seu primeiro passageiro.'}
-            </Text>
-          </View>
+                : 'Adicione seu primeiro passageiro.'
+            }
+          />
         }
         ListFooterComponent={
           filtered.length > 0 ? <SummaryBar passengers={filtered} /> : null
@@ -378,18 +377,7 @@ const cardStyles = StyleSheet.create({
     flex: 1,
   },
   paymentBtn: {
-    width: 44,
-    height: 44,
-    borderRadius: BorderRadius.md,
-    borderWidth: 1.5,
-    borderColor: Colors.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  paymentBtnText: {
-    fontSize: Typography.fontSize.lg,
-    fontWeight: Typography.fontWeight.bold,
-    color: Colors.primary,
+    flex: 1,
   },
 });
 
@@ -465,24 +453,5 @@ const styles = StyleSheet.create({
   },
   filterItem: {
     flex: 1,
-  },
-  empty: {
-    alignItems: 'center',
-    paddingVertical: Spacing.xl * 2,
-    gap: Spacing.sm,
-  },
-  emptyIcon: {
-    fontSize: 48,
-  },
-  emptyTitle: {
-    fontSize: Typography.fontSize.lg,
-    fontWeight: Typography.fontWeight.semibold,
-    color: Colors.textPrimary,
-  },
-  emptySubtitle: {
-    fontSize: Typography.fontSize.sm,
-    color: Colors.textSecondary,
-    textAlign: 'center',
-    paddingHorizontal: Spacing.xl,
   },
 });

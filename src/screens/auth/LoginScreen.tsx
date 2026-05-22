@@ -9,6 +9,7 @@ import {
   Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useAuth } from '@hooks/useAuth';
 import { Input } from '@components/forms/Input';
 import { Button } from '@components/common/Button';
@@ -54,7 +55,7 @@ export const LoginScreen: React.FC<AuthScreenProps<'Login'>> = ({ navigation }) 
         >
           {/* Header */}
           <View style={styles.header}>
-            <Text style={styles.logo}>🚌</Text>
+            <Icon name="bus" size={52} color={Colors.primary} />
             <Text style={styles.title}>Rodaki</Text>
             <Text style={styles.subtitle}>Gestão de transporte simplificada</Text>
           </View>
@@ -89,7 +90,11 @@ export const LoginScreen: React.FC<AuthScreenProps<'Login'>> = ({ navigation }) 
               secureTextEntry={!showPassword}
               rightIcon={
                 <TouchableOpacity onPress={() => setShowPassword((v) => !v)}>
-                  <Text style={styles.togglePassword}>{showPassword ? '🙈' : '👁️'}</Text>
+                  <Icon
+                    name={showPassword ? 'eye-off-outline' : 'eye-outline'}
+                    size={20}
+                    color={Colors.textSecondary}
+                  />
                 </TouchableOpacity>
               }
             />
@@ -137,7 +142,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: Spacing.xxl,
   },
-  logo: { fontSize: 56, marginBottom: Spacing.sm },
   title: {
     fontSize: Typography.fontSize.xxxl,
     fontWeight: Typography.fontWeight.bold,
@@ -180,7 +184,6 @@ const styles = StyleSheet.create({
     fontWeight: Typography.fontWeight.medium,
   },
   submitBtn: { marginTop: Spacing.sm },
-  togglePassword: { fontSize: 18 },
   footer: {
     flexDirection: 'row',
     justifyContent: 'center',

@@ -9,6 +9,7 @@ import {
   Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useAuth } from '@hooks/useAuth';
 import { Input } from '@components/forms/Input';
 import { Button } from '@components/common/Button';
@@ -55,12 +56,13 @@ export const ForgotPasswordScreen: React.FC<AuthScreenProps<'ForgotPassword'>> =
         >
           {/* Back */}
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.back}>
-            <Text style={styles.backText}>← Voltar</Text>
+            <Icon name="arrow-left" size={18} color={Colors.textPrimary} />
+            <Text style={styles.backText}>Voltar</Text>
           </TouchableOpacity>
 
           {/* Header */}
           <View style={styles.header}>
-            <Text style={styles.logo}>🔑</Text>
+            <Icon name="key-outline" size={52} color={Colors.primary} />
             <Text style={styles.title}>Esqueceu a senha?</Text>
             <Text style={styles.subtitle}>
               Digite seu e-mail e enviaremos um link para redefinir sua senha
@@ -71,7 +73,7 @@ export const ForgotPasswordScreen: React.FC<AuthScreenProps<'ForgotPassword'>> =
           <View style={styles.form}>
             {success ? (
               <View style={styles.successBanner}>
-                <Text style={styles.successIcon}>✅</Text>
+                <Icon name="check-circle-outline" size={48} color={Colors.success} />
                 <Text style={styles.successTitle}>E-mail enviado!</Text>
                 <Text style={styles.successText}>
                   Verifique sua caixa de entrada e siga as instruções para redefinir sua senha.
@@ -138,7 +140,13 @@ const styles = StyleSheet.create({
     padding: Spacing.lg,
     justifyContent: 'center',
   },
-  back: { marginBottom: Spacing.lg },
+  back: {
+    marginBottom: Spacing.lg,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    minHeight: 56,
+  },
   backText: {
     color: Colors.primary,
     fontSize: Typography.fontSize.md,
@@ -148,7 +156,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: Spacing.xxl,
   },
-  logo: { fontSize: 56, marginBottom: Spacing.sm },
   title: {
     fontSize: Typography.fontSize.xxl,
     fontWeight: Typography.fontWeight.bold,
@@ -181,9 +188,6 @@ const styles = StyleSheet.create({
   successBanner: {
     alignItems: 'center',
     gap: Spacing.md,
-  },
-  successIcon: {
-    fontSize: 48,
   },
   successTitle: {
     fontSize: Typography.fontSize.xl,

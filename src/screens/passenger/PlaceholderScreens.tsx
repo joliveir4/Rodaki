@@ -2,26 +2,28 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { Colors, Typography, Spacing } from '@constants/theme';
 
 // Tela placeholder reutilizável enquanto a implementação real não é feita
-const PlaceholderScreen: React.FC<{ title: string; description: string; icon: string }> = ({
+const PlaceholderScreen: React.FC<{ title: string; description: string; iconName: string }> = ({
   title,
   description,
-  icon,
+  iconName,
 }) => {
   const navigation = useNavigation();
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <Text style={styles.backIcon}>‹</Text>
+          <Icon name="arrow-left" size={18} color={Colors.textPrimary} />
+          <Text style={styles.backText}>Voltar</Text>
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{title}</Text>
-        <View style={{ width: 36 }} />
+        <View style={styles.backSpacer} />
       </View>
       <View style={styles.body}>
-        <Text style={styles.icon}>{icon}</Text>
+        <Icon name={iconName} size={48} color={Colors.textSecondary} />
         <Text style={styles.title}>{title}</Text>
         <Text style={styles.description}>{description}</Text>
       </View>
@@ -42,13 +44,18 @@ const styles = StyleSheet.create({
     borderBottomColor: Colors.border,
   },
   backBtn: {
-    width: 36,
-    alignItems: 'flex-start',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    minHeight: 56,
   },
-  backIcon: {
-    fontSize: 28,
-    color: Colors.primary,
-    lineHeight: 32,
+  backText: {
+    fontSize: Typography.fontSize.sm,
+    color: Colors.textPrimary,
+    fontWeight: Typography.fontWeight.medium,
+  },
+  backSpacer: {
+    width: 72,
   },
   headerTitle: {
     fontSize: Typography.fontSize.lg,
@@ -62,7 +69,6 @@ const styles = StyleSheet.create({
     padding: Spacing.lg,
     gap: Spacing.md,
   },
-  icon: { fontSize: 56 },
   title: {
     fontSize: Typography.fontSize.xl,
     fontWeight: Typography.fontWeight.bold,
@@ -82,7 +88,7 @@ export { UploadReceiptScreen as PassengerUploadReceiptScreen } from './UploadRec
 
 export const PassengerEditProfileScreen: React.FC = () => (
   <PlaceholderScreen
-    icon="✏️"
+    iconName="account-edit-outline"
     title="Editar Dados"
     description="Aqui você poderá editar suas informações pessoais como endereço, telefone e foto."
   />

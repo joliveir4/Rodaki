@@ -13,6 +13,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { Colors, Typography, Spacing, BorderRadius, Shadows } from '@constants/theme';
 import { Input } from '@components/common/Input';
 import { Button } from '@components/common/Button';
@@ -44,15 +45,15 @@ interface FormErrors extends Partial<Record<keyof FormValues, string>> {}
 // Agrupa campos com título e ícone
 
 interface FormSectionProps {
-  icon: string;
+  iconName: string;
   title: string;
   children: React.ReactNode;
 }
 
-const FormSection: React.FC<FormSectionProps> = ({ icon, title, children }) => (
+const FormSection: React.FC<FormSectionProps> = ({ iconName, title, children }) => (
   <View style={sectionStyles.container}>
     <View style={sectionStyles.header}>
-      <Text style={sectionStyles.icon}>{icon}</Text>
+      <Icon name={iconName} size={18} color={Colors.textSecondary} />
       <Text style={sectionStyles.title}>{title}</Text>
     </View>
     <View style={sectionStyles.body}>{children}</View>
@@ -75,9 +76,6 @@ const sectionStyles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: Colors.border,
     backgroundColor: Colors.surfaceVariant,
-  },
-  icon: {
-    fontSize: 18,
   },
   title: {
     fontSize: Typography.fontSize.md,
@@ -291,7 +289,8 @@ export const AddPassengerScreen: React.FC = () => {
           activeOpacity={0.7}
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
         >
-          <Text style={styles.backIcon}>←</Text>
+          <Icon name="arrow-left" size={18} color={Colors.textPrimary} />
+          <Text style={styles.backText}>Voltar</Text>
         </TouchableOpacity>
 
         <View style={styles.headerCenter}>
@@ -315,7 +314,7 @@ export const AddPassengerScreen: React.FC = () => {
           keyboardShouldPersistTaps="handled"
         >
           {/* ── Seção 1: Dados Pessoais ─────────────────────────────────── */}
-          <FormSection icon="👤" title="Dados Pessoais">
+          <FormSection iconName="account-outline" title="Dados Pessoais">
             <Input
               label="Nome completo"
               required
@@ -360,7 +359,7 @@ export const AddPassengerScreen: React.FC = () => {
           </FormSection>
 
           {/* ── Seção 2: Endereço ───────────────────────────────────────── */}
-          <FormSection icon="📍" title="Endereço">
+          <FormSection iconName="map-marker-outline" title="Endereço">
             <Input
               ref={cepRef}
               label="CEP"
@@ -374,7 +373,9 @@ export const AddPassengerScreen: React.FC = () => {
               returnKeyType="next"
               maxLength={9}
               loading={cepLoading}
-              rightElement={cepLoading ? undefined : '🔍'}
+              rightElement={
+                cepLoading ? undefined : <Icon name="magnify" size={18} color={Colors.textSecondary} />
+              }
               onRightElementPress={handleCEPBlur}
               hint={cepLoading ? undefined : 'Digite o CEP para preencher o endereço automaticamente'}
             />
@@ -455,7 +456,7 @@ export const AddPassengerScreen: React.FC = () => {
           </FormSection>
 
           {/* ── Seção 3: Instituição ────────────────────────────────────── */}
-          <FormSection icon="🎓" title="Instituição">
+          <FormSection iconName="school-outline" title="Instituição">
             <Input
               ref={universityRef}
               label="Faculdade / Universidade"
@@ -519,15 +520,17 @@ const styles = StyleSheet.create({
     borderBottomColor: Colors.border,
   },
   backBtn: {
-    width: 40,
-    height: 40,
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    gap: 6,
+    minHeight: 56,
+    paddingHorizontal: Spacing.sm,
   },
-  backIcon: {
-    fontSize: 22,
-    color: Colors.primary,
-    fontWeight: Typography.fontWeight.bold,
+  backText: {
+    fontSize: Typography.fontSize.sm,
+    color: Colors.textPrimary,
+    fontWeight: Typography.fontWeight.medium,
   },
   headerCenter: {
     flex: 1,

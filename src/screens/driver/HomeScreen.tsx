@@ -9,6 +9,7 @@ import {
   ScrollView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { usePassengers } from '@hooks/usePassengers';
 import { useAuthStore, selectAsDriver } from '@store/auth.store';
 import { usePassengersStore } from '@store/passengers.store';
@@ -179,10 +180,12 @@ export const DriverHomeScreen: React.FC = () => {
               <Text style={styles.headerTitle}>Rodaki</Text>
               <View style={styles.headerActions}>
                 <TouchableOpacity style={styles.dateBtn}>
-                  <Text style={styles.dateBtnText}>📅 Hoje</Text>
+                  <Icon name="calendar-month-outline" size={18} color={Colors.textPrimary} />
+                  <Text style={styles.dateBtnText}>Hoje</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.refreshBtn}>
-                  <Text style={styles.refreshIcon}>↻</Text>
+                  <Icon name="refresh" size={18} color={Colors.textPrimary} />
+                  <Text style={styles.refreshText}>Atualizar</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -231,7 +234,7 @@ export const DriverHomeScreen: React.FC = () => {
         ListEmptyComponent={
           !isLoading ? (
             <EmptyState
-              icon="🚌"
+              iconName="bus"
               title="Nenhum passageiro encontrado"
               description={
                 search
@@ -374,8 +377,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.border,
     borderRadius: BorderRadius.md,
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: 6,
+    paddingHorizontal: Spacing.md,
+    minHeight: 56,
     backgroundColor: Colors.surface,
   },
   dateBtnText: {
@@ -384,18 +387,20 @@ const styles = StyleSheet.create({
     fontWeight: Typography.fontWeight.medium,
   },
   refreshBtn: {
-    width: 34,
-    height: 34,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
     borderRadius: BorderRadius.md,
     borderWidth: 1,
     borderColor: Colors.border,
-    alignItems: 'center',
-    justifyContent: 'center',
+    paddingHorizontal: Spacing.md,
+    minHeight: 56,
     backgroundColor: Colors.surface,
   },
-  refreshIcon: {
-    fontSize: 18,
+  refreshText: {
+    fontSize: Typography.fontSize.sm,
     color: Colors.textPrimary,
+    fontWeight: Typography.fontWeight.medium,
   },
 
   // Stats

@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { Colors, Typography, Spacing, BorderRadius, Shadows } from '@constants/theme';
 import { Avatar } from '@components/common/Avatar';
 import { Input } from '@components/common/Input';
@@ -21,6 +22,7 @@ import { Button } from '@components/common/Button';
 import { useAuthStore, selectAsDriver } from '@store/auth.store';
 import { useAuth } from '@hooks/useAuth';
 import { authService } from '@services/auth.service';
+import { saveLocalAvatarFromFile, saveLocalAvatarFromUri } from '@utils/localAvatar';
 import { formatPhone, formatPixKeyType } from '@utils/formatters';
 import type { PassengerAddress, PixKeyType } from '../../@types/user.types';
 
@@ -89,6 +91,25 @@ async function fetchAddressByCEP(cep: string): Promise<Partial<AddressForm> | nu
   }
 }
 
+function pickWebImageFile(): Promise<Blob | null> {
+  return new Promise((resolve) => {
+    const documentRef = (globalThis as any).document;
+    if (!documentRef?.createElement) {
+      resolve(null);
+      return;
+    }
+
+    const input = documentRef.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.onchange = () => {
+      const file = input.files?.[0] ?? null;
+      resolve(file ?? null);
+    };
+    input.click();
+  });
+}
+
 // ─── InfoRow ─────────────────────────────────────────────────────────────────
 // Linha de informação read-only usada dentro dos cards
 
@@ -140,22 +161,22 @@ const infoRowStyles = StyleSheet.create({
 // Card com título, ícone e linhas de informação
 
 interface InfoCardProps {
-  icon: string;
+  iconName: string;
   title: string;
   onEdit?: () => void;
   children: React.ReactNode;
 }
 
-const InfoCard: React.FC<InfoCardProps> = ({ icon, title, onEdit, children }) => (
+const InfoCard: React.FC<InfoCardProps> = ({ iconName, title, onEdit, children }) => (
   <View style={cardStyles.card}>
     <View style={cardStyles.header}>
       <View style={cardStyles.titleRow}>
-        <Text style={cardStyles.icon}>{icon}</Text>
+        <Icon name={iconName} size={18} color={Colors.textSecondary} />
         <Text style={cardStyles.title}>{title}</Text>
       </View>
       {onEdit && (
         <TouchableOpacity onPress={onEdit} activeOpacity={0.7} style={cardStyles.editBtn}>
-          <Text style={cardStyles.editBtnText}>✏️ Editar</Text>
+          <Text style={cardStyles.editBtnText}>Editar</Text>
         </TouchableOpacity>
       )}
     </View>
@@ -185,7 +206,6 @@ const cardStyles = StyleSheet.create({
     alignItems: 'center',
     gap: Spacing.sm,
   },
-  icon: { fontSize: 18 },
   title: {
     fontSize: Typography.fontSize.md,
     fontWeight: Typography.fontWeight.semibold,
@@ -319,7 +339,8 @@ const EditAddressModal: React.FC<EditAddressModalProps> = ({
             <View style={modalStyles.header}>
               <Text style={modalStyles.title}>Editar Endereço</Text>
               <TouchableOpacity onPress={onClose} activeOpacity={0.7} style={modalStyles.closeBtn}>
-                <Text style={modalStyles.closeIcon}>✕</Text>
+                <Icon name="close" size={16} color={Colors.textSecondary} />
+                <Text style={modalStyles.closeText}>Fechar</Text>
               </TouchableOpacity>
             </View>
 
@@ -338,7 +359,9 @@ const EditAddressModal: React.FC<EditAddressModalProps> = ({
                 keyboardType="numeric"
                 maxLength={9}
                 loading={cepLoading}
-                rightElement={cepLoading ? undefined : '🔍'}
+                rightElement={
+                  cepLoading ? undefined : <Icon name="magnify" size={18} color={Colors.textSecondary} />
+                }
                 onRightElementPress={handleCEPBlur}
                 returnKeyType="next"
                 hint="Preenche o endereço automaticamente"
@@ -471,17 +494,19 @@ const modalStyles = StyleSheet.create({
     color: Colors.textPrimary,
   },
   closeBtn: {
-    width: 32,
-    height: 32,
     borderRadius: BorderRadius.full,
     backgroundColor: Colors.surfaceVariant,
     alignItems: 'center',
     justifyContent: 'center',
+    flexDirection: 'row',
+    gap: 6,
+    paddingHorizontal: Spacing.md,
+    minHeight: 56,
   },
-  closeIcon: {
-    fontSize: 14,
+  closeText: {
+    fontSize: Typography.fontSize.xs,
     color: Colors.textSecondary,
-    fontWeight: Typography.fontWeight.bold,
+    fontWeight: Typography.fontWeight.semibold,
   },
   content: {
     padding: Spacing.lg,
@@ -555,7 +580,8 @@ const EditPhoneModal: React.FC<EditPhoneModalProps> = ({ visible, initial, onClo
             <View style={modalStyles.header}>
               <Text style={modalStyles.title}>Editar Telefone</Text>
               <TouchableOpacity onPress={onClose} activeOpacity={0.7} style={modalStyles.closeBtn}>
-                <Text style={modalStyles.closeIcon}>✕</Text>
+                <Icon name="close" size={16} color={Colors.textSecondary} />
+                <Text style={modalStyles.closeText}>Fechar</Text>
               </TouchableOpacity>
             </View>
 
@@ -656,7 +682,8 @@ const EditVehicleModal: React.FC<EditVehicleModalProps> = ({
             <View style={modalStyles.header}>
               <Text style={modalStyles.title}>Editar Veículo</Text>
               <TouchableOpacity onPress={onClose} activeOpacity={0.7} style={modalStyles.closeBtn}>
-                <Text style={modalStyles.closeIcon}>✕</Text>
+                <Icon name="close" size={16} color={Colors.textSecondary} />
+                <Text style={modalStyles.closeText}>Fechar</Text>
               </TouchableOpacity>
             </View>
 
@@ -754,7 +781,8 @@ const EditPixModal: React.FC<EditPixModalProps> = ({ visible, initial, onClose, 
             <View style={modalStyles.header}>
               <Text style={modalStyles.title}>Editar Chave PIX</Text>
               <TouchableOpacity onPress={onClose} activeOpacity={0.7} style={modalStyles.closeBtn}>
-                <Text style={modalStyles.closeIcon}>✕</Text>
+                <Icon name="close" size={16} color={Colors.textSecondary} />
+                <Text style={modalStyles.closeText}>Fechar</Text>
               </TouchableOpacity>
             </View>
 
@@ -890,6 +918,22 @@ export const DriverProfileScreen: React.FC = () => {
   // ─── Alterar foto ─────────────────────────────────────────────────────────
 
   const handleChangePhoto = async () => {
+    if (Platform.OS === 'web') {
+      const file = await pickWebImageFile();
+      if (!file) return;
+
+      setUploadingPhoto(true);
+      try {
+        const avatarUrl = await saveLocalAvatarFromFile(driver.id, file);
+        setUser({ ...driver, avatarUrl });
+      } catch (err: any) {
+        Alert.alert('Erro', err?.message ?? 'Não foi possível atualizar a foto.');
+      } finally {
+        setUploadingPhoto(false);
+      }
+      return;
+    }
+
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
       Alert.alert(
@@ -912,8 +956,8 @@ export const DriverProfileScreen: React.FC = () => {
     setUploadingPhoto(true);
 
     try {
-      const updates = await authService.updateDriverProfile(driver.id, { avatarUri: uri });
-      setUser({ ...driver, ...updates });
+      const avatarUrl = await saveLocalAvatarFromUri(driver.id, uri);
+      setUser({ ...driver, avatarUrl });
     } catch (err: any) {
       Alert.alert('Erro', err?.message ?? 'Não foi possível atualizar a foto.');
     } finally {
@@ -991,14 +1035,17 @@ export const DriverProfileScreen: React.FC = () => {
               {uploadingPhoto ? (
                 <ActivityIndicator size="small" color={Colors.white} />
               ) : (
-                <Text style={styles.cameraIcon}>📷</Text>
+                <>
+                  <Icon name="camera" size={16} color={Colors.white} />
+                  <Text style={styles.cameraText}>Foto</Text>
+                </>
               )}
             </TouchableOpacity>
           </View>
 
           <Text style={styles.heroName}>{driver.name}</Text>
           <View style={styles.roleBadge}>
-            <Text style={styles.roleBadgeText}>🚌 Motorista</Text>
+            <Text style={styles.roleBadgeText}>Motorista</Text>
           </View>
 
           {/* Stats */}
@@ -1011,27 +1058,27 @@ export const DriverProfileScreen: React.FC = () => {
         <View style={styles.cards}>
 
           {/* Dados pessoais */}
-          <InfoCard icon="👤" title="Dados Pessoais" onEdit={() => setPhoneModalVisible(true)}>
+          <InfoCard iconName="account-outline" title="Dados Pessoais" onEdit={() => setPhoneModalVisible(true)}>
             <InfoRow label="Nome" value={driver.name} />
             <InfoRow label="E-mail" value={driver.email} />
             <InfoRow label="Telefone" value={formatPhone(driver.phone)} />
           </InfoCard>
 
           {/* Veículo */}
-          <InfoCard icon="🚗" title="Veículo" onEdit={() => setVehicleModalVisible(true)}>
+          <InfoCard iconName="car-outline" title="Veículo" onEdit={() => setVehicleModalVisible(true)}>
             <InfoRow label="Modelo" value={driver.vehicleModel} />
             <InfoRow label="Placa" value={driver.vehiclePlate} mono />
           </InfoCard>
 
           {/* PIX */}
-          <InfoCard icon="💸" title="Chave PIX" onEdit={() => setPixModalVisible(true)}>
+          <InfoCard iconName="cash" title="Chave PIX" onEdit={() => setPixModalVisible(true)}>
             <InfoRow label="Tipo" value={formatPixKeyType(driver.pixKeyType)} />
             <InfoRow label="Chave" value={driver.pixKey} mono />
           </InfoCard>
 
           {/* Endereço — editável */}
           <InfoCard
-            icon="📍"
+            iconName="map-marker-outline"
             title="Endereço"
             onEdit={() => setAddressModalVisible(true)}
           >
@@ -1056,7 +1103,7 @@ export const DriverProfileScreen: React.FC = () => {
                 onPress={() => setAddressModalVisible(true)}
                 activeOpacity={0.7}
               >
-                <Text style={styles.addAddressIcon}>＋</Text>
+                <Icon name="plus" size={18} color={Colors.primary} />
                 <Text style={styles.addAddressText}>Adicionar endereço</Text>
               </TouchableOpacity>
             )}
@@ -1140,17 +1187,21 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 0,
     right: 0,
-    width: 34,
-    height: 34,
     borderRadius: BorderRadius.full,
     backgroundColor: Colors.primaryDark,
     borderWidth: 2.5,
     borderColor: Colors.white,
     alignItems: 'center',
     justifyContent: 'center',
+    flexDirection: 'row',
+    gap: 6,
+    paddingHorizontal: Spacing.sm,
+    minHeight: 56,
   },
-  cameraIcon: {
-    fontSize: 16,
+  cameraText: {
+    fontSize: Typography.fontSize.xs,
+    color: Colors.white,
+    fontWeight: Typography.fontWeight.semibold,
   },
   heroName: {
     fontSize: Typography.fontSize.xxl,
@@ -1193,11 +1244,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: Spacing.sm,
     paddingVertical: Spacing.md,
-  },
-  addAddressIcon: {
-    fontSize: Typography.fontSize.xl,
-    color: Colors.primary,
-    fontWeight: Typography.fontWeight.bold,
   },
   addAddressText: {
     fontSize: Typography.fontSize.sm,

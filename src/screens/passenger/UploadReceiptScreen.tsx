@@ -16,6 +16,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { Colors, Typography, Spacing, BorderRadius, Shadows } from '@constants/theme';
 import { useAuthStore, selectAsPassenger } from '@store/auth.store';
 import { authService } from '@services/auth.service';
@@ -71,15 +72,15 @@ const centsToAmount = (cents: number): number => cents / 100;
 // ─── SectionCard ──────────────────────────────────────────────────────────────
 
 interface SectionCardProps {
-  icon: string;
+  iconName: string;
   title: string;
   children: React.ReactNode;
 }
 
-const SectionCard: React.FC<SectionCardProps> = ({ icon, title, children }) => (
+const SectionCard: React.FC<SectionCardProps> = ({ iconName, title, children }) => (
   <View style={cardStyles.card}>
     <View style={cardStyles.header}>
-      <Text style={cardStyles.headerIcon}>{icon}</Text>
+      <Icon name={iconName} size={16} color={Colors.textSecondary} />
       <Text style={cardStyles.headerTitle}>{title}</Text>
     </View>
     {children}
@@ -101,9 +102,6 @@ const cardStyles = StyleSheet.create({
     alignItems: 'center',
     gap: Spacing.xs,
     marginBottom: Spacing.sm,
-  },
-  headerIcon: {
-    fontSize: 16,
   },
   headerTitle: {
     fontSize: Typography.fontSize.sm,
@@ -156,7 +154,7 @@ const MonthPickerModal: React.FC<MonthPickerModalProps> = ({
               <Text style={[modalStyles.monthLabel, isSelected && modalStyles.monthLabelSelected]}>
                 {item.label}
               </Text>
-              {isSelected && <Text style={modalStyles.checkmark}>✓</Text>}
+              {isSelected && <Icon name="check" size={16} color={Colors.primary} />}
             </TouchableOpacity>
           );
         }}
@@ -217,11 +215,6 @@ const modalStyles = StyleSheet.create({
     color: Colors.primary,
     fontWeight: Typography.fontWeight.semibold,
   },
-  checkmark: {
-    fontSize: 16,
-    color: Colors.primary,
-    fontWeight: Typography.fontWeight.bold,
-  },
   separator: {
     height: 1,
     backgroundColor: Colors.border,
@@ -249,7 +242,10 @@ const ReceiptDropzone: React.FC<ReceiptDropzoneProps> = ({
       <View style={dropStyles.previewContainer}>
         <Image source={{ uri }} style={dropStyles.preview} resizeMode="contain" />
         <TouchableOpacity style={dropStyles.clearBtn} onPress={onClear}>
-          <Text style={dropStyles.clearBtnLabel}>✕  Remover</Text>
+          <View style={dropStyles.clearBtnContent}>
+            <Icon name="close" size={16} color={Colors.error} />
+            <Text style={dropStyles.clearBtnLabel}>Remover</Text>
+          </View>
         </TouchableOpacity>
       </View>
     );
@@ -258,18 +254,18 @@ const ReceiptDropzone: React.FC<ReceiptDropzoneProps> = ({
   return (
     <View style={dropStyles.zone}>
       <View style={dropStyles.iconCircle}>
-        <Text style={dropStyles.icon}>↑</Text>
+        <Icon name="upload" size={22} color={Colors.primary} />
       </View>
       <Text style={dropStyles.zoneTitle}>Adicionar arquivo</Text>
       <Text style={dropStyles.zoneSubtitle}>Toque abaixo para selecionar</Text>
 
       <TouchableOpacity style={dropStyles.cameraBtn} onPress={onCamera} activeOpacity={0.85}>
-        <Text style={dropStyles.cameraBtnIcon}>📷</Text>
+        <Icon name="camera" size={18} color={Colors.white} />
         <Text style={dropStyles.cameraBtnLabel}>Tirar Foto</Text>
       </TouchableOpacity>
 
       <TouchableOpacity style={dropStyles.libraryBtn} onPress={onLibrary} activeOpacity={0.85}>
-        <Text style={dropStyles.libraryBtnIcon}>🗂</Text>
+        <Icon name="folder-outline" size={18} color={Colors.textPrimary} />
         <Text style={dropStyles.libraryBtnLabel}>Selecionar Arquivo</Text>
       </TouchableOpacity>
 
@@ -297,11 +293,6 @@ const dropStyles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  icon: {
-    fontSize: 24,
-    color: Colors.primary,
-    fontWeight: Typography.fontWeight.bold,
-  },
   zoneTitle: {
     fontSize: Typography.fontSize.md,
     fontWeight: Typography.fontWeight.semibold,
@@ -318,11 +309,10 @@ const dropStyles = StyleSheet.create({
     gap: Spacing.xs,
     backgroundColor: Colors.primary,
     borderRadius: BorderRadius.md,
-    paddingVertical: 12,
+    minHeight: 56,
     width: '100%',
     marginTop: Spacing.xs,
   },
-  cameraBtnIcon: { fontSize: 16 },
   cameraBtnLabel: {
     fontSize: Typography.fontSize.md,
     fontWeight: Typography.fontWeight.semibold,
@@ -337,10 +327,9 @@ const dropStyles = StyleSheet.create({
     borderRadius: BorderRadius.md,
     borderWidth: 1.5,
     borderColor: Colors.border,
-    paddingVertical: 12,
+    minHeight: 56,
     width: '100%',
   },
-  libraryBtnIcon: { fontSize: 16 },
   libraryBtnLabel: {
     fontSize: Typography.fontSize.md,
     fontWeight: Typography.fontWeight.semibold,
@@ -368,6 +357,12 @@ const dropStyles = StyleSheet.create({
     padding: Spacing.sm,
     alignItems: 'center',
     backgroundColor: Colors.errorLight,
+    minHeight: 56,
+  },
+  clearBtnContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.xs,
   },
   clearBtnLabel: {
     fontSize: Typography.fontSize.sm,
@@ -482,7 +477,7 @@ export const UploadReceiptScreen: React.FC = () => {
         selectedMonth,
       );
       Alert.alert(
-        'Comprovante enviado! ✅',
+        'Comprovante enviado!',
         'Seu comprovante foi enviado ao motorista. Aguarde a confirmação.',
         [{ text: 'OK', onPress: () => navigation.goBack() }],
       );
@@ -509,10 +504,11 @@ export const UploadReceiptScreen: React.FC = () => {
           style={styles.backBtn}
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
         >
-          <Text style={styles.backIcon}>‹</Text>
+          <Icon name="arrow-left" size={18} color={Colors.textPrimary} />
+          <Text style={styles.backText}>Voltar</Text>
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Enviar Comprovante</Text>
-        <View style={{ width: 36 }} />
+        <View style={styles.backSpacer} />
       </View>
 
       <ScrollView
@@ -522,7 +518,7 @@ export const UploadReceiptScreen: React.FC = () => {
         keyboardShouldPersistTaps="handled"
       >
         {/* ── PIX Key ──────────────────────────────────────────────────────── */}
-        <SectionCard icon="👤" title="Chave Pix">
+        <SectionCard iconName="account-outline" title="Chave Pix">
           {isLoadingDriver ? (
             <ActivityIndicator color={Colors.primary} style={{ marginVertical: Spacing.sm }} />
           ) : driver ? (
@@ -539,7 +535,7 @@ export const UploadReceiptScreen: React.FC = () => {
         </SectionCard>
 
         {/* ── Month selector ────────────────────────────────────────────────── */}
-        <SectionCard icon="📅" title="Mês de Referência">
+        <SectionCard iconName="calendar-month-outline" title="Mês de Referência">
           <TouchableOpacity
             style={styles.monthSelector}
             onPress={() => setIsMonthModalOpen(true)}
@@ -553,12 +549,12 @@ export const UploadReceiptScreen: React.FC = () => {
             >
               {selectedMonthLabel}
             </Text>
-            <Text style={styles.chevron}>⌄</Text>
+            <Icon name="chevron-down" size={20} color={Colors.textSecondary} />
           </TouchableOpacity>
         </SectionCard>
 
         {/* ── Amount ────────────────────────────────────────────────────────── */}
-        <SectionCard icon="💵" title="Valor Pago">
+        <SectionCard iconName="cash" title="Valor Pago">
           <View style={styles.amountRow}>
             <Text style={styles.currencyPrefix}>R$</Text>
             <TextInput
@@ -575,7 +571,7 @@ export const UploadReceiptScreen: React.FC = () => {
         </SectionCard>
 
         {/* ── Comprovante ───────────────────────────────────────────────────── */}
-        <SectionCard icon="📎" title="Comprovante de Pagamento">
+        <SectionCard iconName="paperclip" title="Comprovante de Pagamento">
           <ReceiptDropzone
             uri={receiptUri}
             onCamera={handleCamera}
@@ -598,7 +594,7 @@ export const UploadReceiptScreen: React.FC = () => {
             <ActivityIndicator color={Colors.white} />
           ) : (
             <>
-              <Text style={styles.submitBtnIcon}>➤</Text>
+              <Icon name="send" size={16} color={Colors.white} />
               <Text style={styles.submitBtnLabel}>Enviar Comprovante</Text>
             </>
           )}
@@ -636,13 +632,18 @@ const styles = StyleSheet.create({
     borderBottomColor: Colors.border,
   },
   backBtn: {
-    width: 36,
-    alignItems: 'flex-start',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    minHeight: 56,
   },
-  backIcon: {
-    fontSize: 28,
-    color: Colors.primary,
-    lineHeight: 32,
+  backText: {
+    fontSize: Typography.fontSize.sm,
+    color: Colors.textPrimary,
+    fontWeight: Typography.fontWeight.medium,
+  },
+  backSpacer: {
+    width: 72,
   },
   headerTitle: {
     fontSize: Typography.fontSize.lg,
@@ -707,11 +708,6 @@ const styles = StyleSheet.create({
     color: Colors.textDisabled,
     fontWeight: Typography.fontWeight.regular,
   },
-  chevron: {
-    fontSize: 20,
-    color: Colors.textSecondary,
-    lineHeight: 22,
-  },
 
   // Amount
   amountRow: {
@@ -746,16 +742,12 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.primary,
     borderRadius: BorderRadius.lg,
     paddingVertical: Spacing.md,
-    minHeight: 52,
+    minHeight: 56,
     marginTop: Spacing.sm,
     ...Shadows.md,
   },
   submitBtnDisabled: {
     opacity: 0.45,
-  },
-  submitBtnIcon: {
-    fontSize: 16,
-    color: Colors.white,
   },
   submitBtnLabel: {
     fontSize: Typography.fontSize.md,

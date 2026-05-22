@@ -1,10 +1,10 @@
 import React from 'react';
-import { Text } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import type { PassengerTabParamList, PassengerStackParamList } from 'src/@types/navigation.types';
 import { PASSENGER_ROUTES, PASSENGER_STACK_ROUTES } from '@constants/routes';
 import { Colors, Typography } from '@constants/theme';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 // ─── Screens ──────────────────────────────────────────────────────────────────
 
@@ -22,9 +22,9 @@ const Tab = createBottomTabNavigator<PassengerTabParamList>();
 const Stack = createNativeStackNavigator<PassengerStackParamList>();
 
 const tabIcons: Record<string, string> = {
-  [PASSENGER_ROUTES.HOME]: '🏠',
-  [PASSENGER_ROUTES.PAYMENT]: '💳',
-  [PASSENGER_ROUTES.NOTIFICATIONS]: '🔔',
+  [PASSENGER_ROUTES.HOME]: 'home-variant-outline',
+  [PASSENGER_ROUTES.PAYMENT]: 'credit-card-outline',
+  [PASSENGER_ROUTES.NOTIFICATIONS]: 'bell-outline',
 };
 
 const tabLabels: Record<string, string> = {
@@ -37,12 +37,13 @@ const PassengerTabs: React.FC = () => (
   <Tab.Navigator
     screenOptions={({ route }) => ({
       headerShown: false,
-      tabBarIcon: ({ focused }) =>
-        React.createElement(
-          Text,
-          { style: { fontSize: 22, opacity: focused ? 1 : 0.5 } },
-          tabIcons[route.name] ?? '•',
-        ),
+      tabBarIcon: ({ focused }) => (
+        <Icon
+          name={tabIcons[route.name] ?? 'circle-small'}
+          size={22}
+          color={focused ? Colors.primary : Colors.textDisabled}
+        />
+      ),
       tabBarLabel: tabLabels[route.name] ?? route.name,
       tabBarActiveTintColor: Colors.primary,
       tabBarInactiveTintColor: Colors.textDisabled,

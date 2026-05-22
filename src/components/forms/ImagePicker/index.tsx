@@ -9,6 +9,7 @@ import {
   Alert,
 } from 'react-native';
 import * as ExpoImagePicker from 'expo-image-picker';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { Colors, Typography, Spacing, BorderRadius, Shadows } from '@constants/theme';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -99,7 +100,7 @@ export const ImagePicker: React.FC<ImagePickerProps> = ({
           </>
         ) : (
           <View style={styles.placeholder}>
-            <Text style={styles.placeholderIcon}>📎</Text>
+            <Icon name="paperclip" size={30} color={Colors.textSecondary} />
             <Text style={styles.placeholderText}>Toque para adicionar comprovante</Text>
             <Text style={styles.placeholderHint}>Câmera ou galeria</Text>
           </View>
@@ -154,9 +155,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: Spacing.xs,
     padding: Spacing.lg,
-  },
-  placeholderIcon: {
-    fontSize: 32,
   },
   placeholderText: {
     fontSize: Typography.fontSize.md,

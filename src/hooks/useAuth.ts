@@ -1,6 +1,7 @@
 import { useEffect, useCallback } from 'react';
 import { useAuthStore } from '@store/auth.store';
 import { authService } from '@services/auth.service';
+import { getLocalAvatar } from '@utils/localAvatar';
 import type { AuthCredentials, RegisterData } from 'src/@types/user.types';
 
 // ─── useAuth ──────────────────────────────────────────────────────────────────
@@ -16,7 +17,8 @@ export const useAuth = () => {
       if (firebaseUser) {
         try {
           const userData = await authService.fetchUserData(firebaseUser.uid);
-          setUser(userData);
+          const localAvatar = await getLocalAvatar(userData.id);
+          setUser({ ...userData, avatarUrl: localAvatar ?? userData.avatarUrl });
         } catch {
           setUser(null);
         }
@@ -36,7 +38,8 @@ export const useAuth = () => {
         setLoading(true);
         setError(null);
         const userData = await authService.login(credentials);
-        setUser(userData);
+        const localAvatar = await getLocalAvatar(userData.id);
+        setUser({ ...userData, avatarUrl: localAvatar ?? userData.avatarUrl });
       } catch (err: any) {
         console.error('Login error:', err);
         console.error('Error code:', err.code);

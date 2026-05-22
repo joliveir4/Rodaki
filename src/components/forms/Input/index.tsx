@@ -68,6 +68,7 @@ const styles = StyleSheet.create({
   label: {
     fontSize: Typography.fontSize.sm,
     fontWeight: Typography.fontWeight.medium,
+    fontFamily: Typography.fontFamily.medium,
     color: Colors.textPrimary,
   },
   inputWrapper: {
@@ -77,11 +78,12 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.md,
     backgroundColor: Colors.surface,
     paddingHorizontal: Spacing.md,
-    height: 52,
+    minHeight: 56,
   },
   input: {
     flex: 1,
     fontSize: Typography.fontSize.md,
+    fontFamily: Typography.fontFamily.regular,
     color: Colors.textPrimary,
     paddingVertical: 0,
   },

@@ -11,6 +11,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { usePassengers } from '@hooks/usePassengers';
 import { usePayments } from '@hooks/usePayments';
 import { useAuthStore, selectAsPassenger } from '@store/auth.store';
@@ -33,14 +34,14 @@ interface CheckInTile {
   option: CheckInOption;
   label: string;
   sublabel: string;
-  icon: string;
+  iconName: string;
 }
 
 const CHECK_IN_TILES: CheckInTile[] = [
-  { option: 'going',     label: 'Ida',     sublabel: 'Apenas vou',       icon: '→' },
-  { option: 'returning', label: 'Volta',   sublabel: 'Apenas volto',       icon: '←' },
-  { option: 'both',      label: 'Ambas',   sublabel: 'Ida e Volta', icon: '↔' },
-  { option: 'absent',    label: 'Ausente', sublabel: 'Não vou',     icon: '✕' },
+  { option: 'going',     label: 'Ida',     sublabel: 'Apenas vou',       iconName: 'arrow-right' },
+  { option: 'returning', label: 'Volta',   sublabel: 'Apenas volto',       iconName: 'arrow-left' },
+  { option: 'both',      label: 'Ambas',   sublabel: 'Ida e Volta', iconName: 'swap-horizontal' },
+  { option: 'absent',    label: 'Ausente', sublabel: 'Não vou',     iconName: 'close' },
 ];
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -127,9 +128,11 @@ const CheckInTileButton: React.FC<{
     onPress={onPress}
     activeOpacity={0.75}
   >
-    <Text style={[tileStyles.icon, { color: selected ? getOptionAccent(tile.option) : Colors.textSecondary }]}>
-      {tile.icon}
-    </Text>
+    <Icon
+      name={tile.iconName}
+      size={22}
+      color={selected ? getOptionAccent(tile.option) : Colors.textSecondary}
+    />
     <Text style={[tileStyles.label, { color: selected ? getOptionAccent(tile.option) : Colors.textPrimary }]}>
       {tile.label}
     </Text>
@@ -150,11 +153,6 @@ const tileStyles = StyleSheet.create({
     borderWidth: 1.5,
     gap: 2,
     minHeight: 80,
-  },
-  icon: {
-    fontSize: 22,
-    fontWeight: Typography.fontWeight.bold,
-    lineHeight: 28,
   },
   label: {
     fontSize: Typography.fontSize.sm,
@@ -184,21 +182,21 @@ const cardStyles = StyleSheet.create({
 // ─── NavActionCard ────────────────────────────────────────────────────────────
 
 const NavActionCard: React.FC<{
-  icon: string;
+  iconName: string;
   iconBg: string;
   title: string;
   subtitle: string;
   onPress: () => void;
-}> = ({ icon, iconBg, title, subtitle, onPress }) => (
+}> = ({ iconName, iconBg, title, subtitle, onPress }) => (
   <TouchableOpacity style={navStyles.card} onPress={onPress} activeOpacity={0.7}>
     <View style={[navStyles.iconWrapper, { backgroundColor: iconBg }]}>
-      <Text style={navStyles.icon}>{icon}</Text>
+      <Icon name={iconName} size={22} color={Colors.primary} />
     </View>
     <View style={navStyles.texts}>
       <Text style={navStyles.title}>{title}</Text>
       <Text style={navStyles.subtitle}>{subtitle}</Text>
     </View>
-    <Text style={navStyles.chevron}>›</Text>
+    <Icon name="chevron-right" size={24} color={Colors.textDisabled} />
   </TouchableOpacity>
 );
 
@@ -219,7 +217,6 @@ const navStyles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  icon: { fontSize: 22 },
   texts: { flex: 1, gap: 2 },
   title: {
     fontSize: Typography.fontSize.md,
@@ -229,11 +226,6 @@ const navStyles = StyleSheet.create({
   subtitle: {
     fontSize: Typography.fontSize.sm,
     color: Colors.textSecondary,
-  },
-  chevron: {
-    fontSize: 26,
-    color: Colors.textDisabled,
-    lineHeight: 28,
   },
 });
 
@@ -364,13 +356,13 @@ export const PassengerHomeScreen: React.FC = () => {
 
           {/* Aviso de prazo */}
           <View style={styles.deadlineRow}>
-            <Text style={styles.deadlineIcon}>🕐</Text>
+            <Icon name="clock-outline" size={16} color={Colors.textSecondary} />
             <Text style={styles.deadlineText}>Alterações até 05:00 PM</Text>
           </View>
 
           {/* Botão salvar */}
           <Button
-            label={isSaving ? 'Salvando...' : saved ? '✓ Salvo' : 'Salvar'}
+            label={isSaving ? 'Salvando...' : saved ? 'Salvo' : 'Salvar'}
             variant="primary"
             onPress={handleSave}
             loading={isSaving}
@@ -388,7 +380,7 @@ export const PassengerHomeScreen: React.FC = () => {
               <Text style={styles.profileName}>{passenger.name}</Text>
               {addressLine ? (
                 <View style={styles.profileDetailRow}>
-                  <Text style={styles.detailIcon}>📍</Text>
+                  <Icon name="map-marker-outline" size={16} color={Colors.textSecondary} />
                   <Text style={styles.detailText} numberOfLines={2}>
                     {addressLine}
                   </Text>
@@ -396,12 +388,12 @@ export const PassengerHomeScreen: React.FC = () => {
               ) : null}
               {passenger.phone ? (
                 <View style={styles.profileDetailRow}>
-                  <Text style={styles.detailIcon}>📞</Text>
+                  <Icon name="phone-outline" size={16} color={Colors.textSecondary} />
                   <Text style={styles.detailText}>{formatPhone(passenger.phone)}</Text>
                 </View>
               ) : null}
               <View style={styles.profileDetailRow}>
-                <Text style={styles.detailIcon}>✉️</Text>
+                <Icon name="email-outline" size={16} color={Colors.textSecondary} />
                 <Text style={styles.detailText} numberOfLines={1}>
                   {passenger.email}
                 </Text>
@@ -410,7 +402,7 @@ export const PassengerHomeScreen: React.FC = () => {
           </View>
 
           <Button
-            label="✏️  Editar Dados"
+            label="Editar Dados"
             variant="primary"
             onPress={() => navigation.navigate(PASSENGER_STACK_ROUTES.EDIT_PROFILE)}
             fullWidth
@@ -421,7 +413,7 @@ export const PassengerHomeScreen: React.FC = () => {
         <SectionCard style={styles.paymentCard}>
           <View style={styles.paymentRow}>
             <View style={[styles.paymentIconBox, { backgroundColor: paymentIconBg }]}>
-              <Text style={styles.paymentIconText}>💳</Text>
+              <Icon name="credit-card-outline" size={22} color={paymentColor} />
             </View>
             <View style={styles.paymentInfo}>
               <Text style={[styles.paymentLabel, { color: paymentColor }]}>
@@ -435,7 +427,7 @@ export const PassengerHomeScreen: React.FC = () => {
 
         {/* ── Agenda Semanal ─────────────────────────────────────────────── */}
         <NavActionCard
-          icon="📅"
+          iconName="calendar-month-outline"
           iconBg="#EFF6FF"
           title="Minha Agenda Semanal"
           subtitle="Visualizar cronograma"
@@ -444,7 +436,7 @@ export const PassengerHomeScreen: React.FC = () => {
 
         {/* ── Comprovante de Pagamento ───────────────────────────────────── */}
         <NavActionCard
-          icon="🧾"
+          iconName="file-document-outline"
           iconBg="#F5F3FF"
           title="Enviar Comprovante"
           subtitle="Anexar comprovante de pagamento"
@@ -525,7 +517,6 @@ const styles = StyleSheet.create({
     gap: 4,
     marginTop: Spacing.sm,
   },
-  deadlineIcon: { fontSize: 13 },
   deadlineText: {
     fontSize: Typography.fontSize.xs,
     color: Colors.textSecondary,
@@ -556,11 +547,6 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     gap: 4,
   },
-  detailIcon: {
-    fontSize: 13,
-    lineHeight: 19,
-    width: 18,
-  },
   detailText: {
     flex: 1,
     fontSize: Typography.fontSize.sm,
@@ -582,7 +568,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  paymentIconText: { fontSize: 22 },
   paymentInfo: { flex: 1 },
   paymentLabel: {
     fontSize: Typography.fontSize.md,

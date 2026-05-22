@@ -77,6 +77,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: BorderRadius.md,
+    minHeight: 56,
   },
   fullWidth: {
     width: '100%',
@@ -105,13 +106,14 @@ const styles = StyleSheet.create({
   },
 
   // Sizes
-  size_sm: { paddingVertical: Spacing.xs + 2, paddingHorizontal: Spacing.md },
-  size_md: { paddingVertical: Spacing.sm + 2, paddingHorizontal: Spacing.lg },
-  size_lg: { paddingVertical: Spacing.md, paddingHorizontal: Spacing.xl },
+  size_sm: { paddingVertical: Spacing.sm, paddingHorizontal: Spacing.md },
+  size_md: { paddingVertical: Spacing.md, paddingHorizontal: Spacing.lg },
+  size_lg: { paddingVertical: Spacing.lg, paddingHorizontal: Spacing.xl },
 
   // Labels
   label: {
     fontWeight: Typography.fontWeight.semibold,
+    fontFamily: Typography.fontFamily.medium,
   },
   label_primary: { color: Colors.white },
   label_secondary: { color: Colors.white },

@@ -1,12 +1,13 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { Colors, Typography, Spacing } from '@constants/theme';
 import { Button } from '../Button';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 interface EmptyStateProps {
-  icon?: string;                // emoji ou símbolo
+  iconName?: string;
   title: string;
   description?: string;
   actionLabel?: string;
@@ -16,7 +17,7 @@ interface EmptyStateProps {
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export const EmptyState: React.FC<EmptyStateProps> = ({
-  icon = '📭',
+  iconName = 'inbox',
   title,
   description,
   actionLabel,
@@ -24,7 +25,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
 }) => {
   return (
     <View style={styles.container}>
-      <Text style={styles.icon}>{icon}</Text>
+      <Icon name={iconName} size={48} color={Colors.textSecondary} />
       <Text style={styles.title}>{title}</Text>
       {description && <Text style={styles.description}>{description}</Text>}
       {actionLabel && onAction && (
@@ -48,10 +49,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: Spacing.xl,
     gap: Spacing.sm,
-  },
-  icon: {
-    fontSize: 48,
-    marginBottom: Spacing.sm,
   },
   title: {
     fontSize: Typography.fontSize.lg,

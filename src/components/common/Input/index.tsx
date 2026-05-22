@@ -128,12 +128,14 @@ const styles = StyleSheet.create({
   label: {
     fontSize: Typography.fontSize.sm,
     fontWeight: Typography.fontWeight.semibold,
+    fontFamily: Typography.fontFamily.medium,
     color: Colors.textPrimary,
   },
   required: {
     fontSize: Typography.fontSize.sm,
     color: Colors.error,
     fontWeight: Typography.fontWeight.semibold,
+    fontFamily: Typography.fontFamily.medium,
   },
   inputWrapper: {
     flexDirection: 'row',
@@ -143,7 +145,7 @@ const styles = StyleSheet.create({
     borderColor: Colors.border,
     borderRadius: BorderRadius.md,
     paddingHorizontal: Spacing.md,
-    minHeight: 48,
+    minHeight: 56,
   },
   inputWrapperFocused: {
     borderColor: Colors.borderFocus,
@@ -160,6 +162,7 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     fontSize: Typography.fontSize.md,
+    fontFamily: Typography.fontFamily.regular,
     color: Colors.textPrimary,
     paddingVertical: Spacing.sm,
   },

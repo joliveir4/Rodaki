@@ -10,6 +10,7 @@ import {
   Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { usePayments } from '@hooks/usePayments';
 import { Avatar } from '@components/common/Avatar';
 import { Badge } from '@components/common/Badge';
@@ -84,7 +85,7 @@ export const PaymentReviewScreen: React.FC = () => {
         ListEmptyComponent={
           !isLoading ? (
             <EmptyState
-              icon="💳"
+              iconName="credit-card-outline"
               title="Tudo em dia!"
               description="Não há comprovantes pendentes de revisão."
             />
@@ -106,7 +107,10 @@ export const PaymentReviewScreen: React.FC = () => {
                   <Text style={styles.modalAmount}>{formatCurrency(selected.amount)}</Text>
                 </View>
                 <TouchableOpacity onPress={() => setSelected(null)}>
-                  <Text style={styles.closeBtn}>✕</Text>
+                  <View style={styles.closeBtn}>
+                    <Icon name="close" size={16} color={Colors.textSecondary} />
+                    <Text style={styles.closeText}>Fechar</Text>
+                  </View>
                 </TouchableOpacity>
               </View>
 
@@ -161,7 +165,20 @@ const styles = StyleSheet.create({
   modalInfo: { flex: 1 },
   modalName: { fontSize: Typography.fontSize.lg, fontWeight: Typography.fontWeight.bold, color: Colors.textPrimary },
   modalAmount: { fontSize: Typography.fontSize.md, color: Colors.primary, fontWeight: Typography.fontWeight.semibold },
-  closeBtn: { fontSize: 20, color: Colors.textSecondary, padding: Spacing.sm },
+  closeBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: Spacing.md,
+    minHeight: 56,
+    borderRadius: BorderRadius.full,
+    backgroundColor: Colors.surfaceVariant,
+  },
+  closeText: {
+    fontSize: Typography.fontSize.xs,
+    color: Colors.textSecondary,
+    fontWeight: Typography.fontWeight.semibold,
+  },
   receipt: { width: '100%', height: 240, borderRadius: BorderRadius.md },
   modalActions: { flexDirection: 'row', gap: Spacing.md },
   actionBtn: { flex: 1 },

@@ -30,7 +30,7 @@ export const authService = {
    * Registra novo usuário e cria documento no Firestore
    */
   async register(data: RegisterData): Promise<User> {
-    console.log('📝 Iniciando registro para:', data.email);
+    console.log('Iniciando registro para:', data.email);
 
     try {
       const credential = await createUserWithEmailAndPassword(
@@ -38,10 +38,10 @@ export const authService = {
         data.email,
         data.password,
       );
-      console.log('✅ Usuário criado no Firebase Auth. UID:', credential.user.uid);
+      console.log('Usuario criado no Firebase Auth. UID:', credential.user.uid);
 
       await updateProfile(credential.user, { displayName: data.name });
-      console.log('✅ Profile atualizado com displayName:', data.name);
+      console.log('Profile atualizado com displayName:', data.name);
 
       const userData: Omit<User, 'createdAt' | 'updatedAt'> & {
         createdAt: ReturnType<typeof serverTimestamp>;
@@ -56,9 +56,9 @@ export const authService = {
         updatedAt: serverTimestamp(),
       };
 
-      console.log('📄 Tentando salvar documento no Firestore:', userData);
+      console.log('Tentando salvar documento no Firestore:', userData);
       await setDoc(doc(firestore, USERS_COLLECTION, credential.user.uid), userData);
-      console.log('✅ Documento salvo com sucesso no Firestore');
+      console.log('Documento salvo com sucesso no Firestore');
 
       return {
         ...userData,
@@ -66,7 +66,7 @@ export const authService = {
         updatedAt: new Date(),
       };
     } catch (error) {
-      console.error('❌ Erro durante o registro:', error);
+      console.error('Erro durante o registro:', error);
       throw error;
     }
   },
@@ -75,16 +75,16 @@ export const authService = {
    * Login com e-mail e senha, retorna dados do usuário do Firestore
    */
   async login(credentials: AuthCredentials): Promise<User> {
-    console.log('🔐 Tentando login com:', credentials.email);
+    console.log('Tentando login com:', credentials.email);
     const credential = await signInWithEmailAndPassword(
       firebaseAuth,
       credentials.email,
       credentials.password,
     );
-    console.log('✅ Login Firebase Auth bem-sucedido. UID:', credential.user.uid);
+    console.log('Login Firebase Auth bem-sucedido. UID:', credential.user.uid);
 
     const userData = await authService.fetchUserData(credential.user.uid);
-    console.log('✅ Dados do usuário recuperados:', userData);
+    console.log('Dados do usuario recuperados:', userData);
     return userData;
   },
 
@@ -92,16 +92,16 @@ export const authService = {
    * Busca dados completos do usuário no Firestore
    */
   async fetchUserData(uid: string): Promise<User> {
-    console.log('📄 Buscando dados do Firestore para UID:', uid);
+    console.log('Buscando dados do Firestore para UID:', uid);
     const docRef = doc(firestore, USERS_COLLECTION, uid);
     const docSnap = await getDoc(docRef);
 
     if (!docSnap.exists()) {
-      console.error('❌ Documento não encontrado no Firestore para UID:', uid);
+      console.error('Documento nao encontrado no Firestore para UID:', uid);
       throw new Error('Usuário não encontrado');
     }
 
-    console.log('✅ Documento encontrado:', docSnap.data());
+    console.log('Documento encontrado:', docSnap.data());
     const data = docSnap.data();
     return {
       ...data,
@@ -119,6 +119,7 @@ export const authService = {
     updates: {
       address?: PassengerAddress;
       avatarUri?: string; // URI local (file://) para upload
+      avatarFile?: Blob; // Blob/File (web)
       vehicleModel?: string;
       vehiclePlate?: string;
       pixKey?: string;
@@ -138,12 +139,13 @@ export const authService = {
     if (updates.pixKeyType) payload.pixKeyType = updates.pixKeyType;
     if (updates.phone) payload.phone = updates.phone;
 
-    if (updates.avatarUri) {
-      // Converte URI local em Blob e faz upload no Storage
-      const response = await fetch(updates.avatarUri);
-      const blob = await response.blob();
+    if (updates.avatarUri || updates.avatarFile) {
+      // Converte URI local em Blob (mobile) ou usa File/Blob direto (web)
+      const blob = updates.avatarFile
+        ? updates.avatarFile
+        : await (await fetch(updates.avatarUri as string)).blob();
       const storageRef = ref(firebaseStorage, `avatars/${uid}.jpg`);
-      await uploadBytes(storageRef, blob);
+      await uploadBytes(storageRef, blob, { contentType: blob.type || 'image/jpeg' });
       const downloadUrl = await getDownloadURL(storageRef);
       payload.avatarUrl = downloadUrl;
       // Atualiza displayName/photo no Firebase Auth

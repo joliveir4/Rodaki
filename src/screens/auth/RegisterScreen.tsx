@@ -9,6 +9,7 @@ import {
   Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useAuth } from '@hooks/useAuth';
 import { Input } from '@components/forms/Input';
 import { Button } from '@components/common/Button';
@@ -64,7 +65,8 @@ export const RegisterScreen: React.FC<AuthScreenProps<'Register'>> = ({ navigati
         >
           {/* Back */}
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.back}>
-            <Text style={styles.backText}>← Voltar</Text>
+            <Icon name="arrow-left" size={18} color={Colors.textPrimary} />
+            <Text style={styles.backText}>Voltar</Text>
           </TouchableOpacity>
 
           {/* Header */}
@@ -146,7 +148,13 @@ const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: Colors.background },
   flex: { flex: 1 },
   container: { flexGrow: 1, padding: Spacing.lg },
-  back: { marginBottom: Spacing.lg },
+  back: {
+    marginBottom: Spacing.lg,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    minHeight: 56,
+  },
   backText: { color: Colors.primary, fontSize: Typography.fontSize.md, fontWeight: Typography.fontWeight.medium },
   header: { marginBottom: Spacing.lg },
   title: { fontSize: Typography.fontSize.xxl, fontWeight: Typography.fontWeight.bold, color: Colors.textPrimary },

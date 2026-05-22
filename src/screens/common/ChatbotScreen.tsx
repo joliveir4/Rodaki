@@ -76,7 +76,7 @@ export const ChatbotScreen: React.FC<ChatbotScreenProps> = ({ title }) => {
 
         {messages.length === 0 ? (
           <EmptyState
-            icon="🤖"
+            iconName="robot-outline"
             title="Chat IA"
             description="Envie uma pergunta sobre o aplicativo para receber ajuda rápida."
           />

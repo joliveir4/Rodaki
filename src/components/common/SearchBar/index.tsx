@@ -5,6 +5,7 @@ import {
   StyleSheet,
   type ViewStyle,
 } from 'react-native';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { Colors, Typography, Spacing, BorderRadius } from '@constants/theme';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -27,12 +28,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
   return (
     <View style={[styles.container, style]}>
       <View style={styles.iconWrapper}>
-        {/* Search icon via unicode — sem dependência extra */}
-        <TextInput
-          editable={false}
-          style={styles.icon}
-          value="🔍"
-        />
+        <Icon name="magnify" size={20} color={Colors.textDisabled} />
       </View>
       <TextInput
         style={styles.input}
@@ -59,20 +55,16 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.border,
     paddingHorizontal: Spacing.md,
-    height: 44,
+    height: 56,
   },
   iconWrapper: {
     marginRight: Spacing.xs,
     justifyContent: 'center',
   },
-  icon: {
-    fontSize: 14,
-    padding: 0,
-    color: Colors.textDisabled,
-  },
   input: {
     flex: 1,
     fontSize: Typography.fontSize.md,
+    fontFamily: Typography.fontFamily.regular,
     color: Colors.textPrimary,
     paddingVertical: 0,
   },

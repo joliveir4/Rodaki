@@ -4,7 +4,7 @@ import { getFirestore } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 
 // ─── Firebase Configuration ───────────────────────────────────────────────────
-// ⚠️  Substitua pelos valores do seu projeto no Firebase Console
+// Substitua pelos valores do seu projeto no Firebase Console
 //     https://console.firebase.google.com → Configurações do projeto → Seus apps
 
 function getEnvVar(key: string): string {

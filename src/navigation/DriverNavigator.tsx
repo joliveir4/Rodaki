@@ -1,11 +1,11 @@
 import React from 'react';
-import { Text } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import type { DriverTabParamList, DriverStackParamList } from 'src/@types/navigation.types';
 import { DRIVER_ROUTES, DRIVER_STACK_ROUTES } from '@constants/routes';
 import { Colors, Typography } from '@constants/theme';
 import { usePaymentStore } from '@store/payment.store';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 // ─── Screens ──────────────────────────────────────────────────────────────────
 
@@ -22,12 +22,12 @@ const Tab = createBottomTabNavigator<DriverTabParamList>();
 const Stack = createNativeStackNavigator<DriverStackParamList>();
 
 const tabIcons: Record<string, string> = {
-  [DRIVER_ROUTES.HOME]: '🚌',
-  [DRIVER_ROUTES.PASSENGER_LIST]: '👥',
-  [DRIVER_ROUTES.PAYMENT_REVIEW]: '💰',
-  [DRIVER_ROUTES.MANAGE_PASSENGERS]: '⚙️',
-  [DRIVER_ROUTES.PROFILE]: '👤',
-  [DRIVER_ROUTES.CHAT]: '🤖',
+  [DRIVER_ROUTES.HOME]: 'view-dashboard-outline',
+  [DRIVER_ROUTES.PASSENGER_LIST]: 'account-group-outline',
+  [DRIVER_ROUTES.PAYMENT_REVIEW]: 'cash-multiple',
+  [DRIVER_ROUTES.MANAGE_PASSENGERS]: 'account-cog-outline',
+  [DRIVER_ROUTES.PROFILE]: 'account-circle-outline',
+  [DRIVER_ROUTES.CHAT]: 'message-text-outline',
 };
 
 const tabLabels: Record<string, string> = {
@@ -48,11 +48,13 @@ const DriverTabs: React.FC = () => {
       screenOptions={({ route }) => ({
         headerShown: false,
         tabBarIcon: ({ focused }) => {
-          const icon = tabIcons[route.name] ?? '•';
-          return React.createElement(
-            Text,
-            { style: { fontSize: 22, opacity: focused ? 1 : 0.5 } },
-            icon,
+          const icon = tabIcons[route.name] ?? 'circle-small';
+          return (
+            <Icon
+              name={icon}
+              size={22}
+              color={focused ? Colors.primary : Colors.textDisabled}
+            />
           );
         },
         tabBarLabel: tabLabels[route.name] ?? route.name,
