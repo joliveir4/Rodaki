@@ -11,7 +11,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import Icon from '@expo/vector-icons/MaterialCommunityIcons';
 import { usePassengers } from '@hooks/usePassengers';
 import { usePayments } from '@hooks/usePayments';
 import { useAuthStore, selectAsPassenger } from '@store/auth.store';
@@ -400,13 +400,6 @@ export const PassengerHomeScreen: React.FC = () => {
               </View>
             </View>
           </View>
-
-          <Button
-            label="Editar Dados"
-            variant="primary"
-            onPress={() => navigation.navigate(PASSENGER_STACK_ROUTES.EDIT_PROFILE)}
-            fullWidth
-          />
         </SectionCard>
 
         {/* ── Situação de Pagamento ──────────────────────────────────────── */}

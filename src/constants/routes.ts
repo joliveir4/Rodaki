@@ -38,4 +38,5 @@ export const DRIVER_STACK_ROUTES = {
   TABS: 'DriverTabs',
   ADD_PASSENGER: 'AddPassenger',
   EDIT_PASSENGER: 'EditPassenger',
+  PASSENGER_PAYMENTS: 'PassengerPayments',
 } as const;

@@ -52,6 +52,36 @@ npm start
 
 - Abra o Expo Go e leia o QR code que aparece no terminal.
 
+## Rodando com Docker
+
+Se quiser executar o Expo dentro de um container, use:
+
+```bash
+docker build -t rodaki .
+docker run --rm -it \
+  --env-file .env \
+  -p 8081:8081 \
+  -p 19000:19000 \
+  -p 19001:19001 \
+  -p 19002:19002 \
+  -p 3000:3000 \
+  rodaki
+```
+
+O container sobe com `expo start --tunnel`, o que costuma ser o jeito mais simples de abrir o app no Expo Go quando o processo está isolado em Docker.
+
+Se preferir usar a versão web, troque o comando do container para `npm run web`.
+
+## Rodando com Docker Compose
+
+Para subir o app com `docker compose`, use:
+
+```bash
+docker compose up --build
+```
+
+O serviço usa o arquivo [.env](.env) e monta o projeto como volume, então mudanças no código aparecem sem recriar a imagem.
+
 ## Scripts uteis
 
 ```bash

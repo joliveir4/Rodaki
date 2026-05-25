@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   View,
   Text,
@@ -10,7 +10,7 @@ import {
   Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import Icon from '@expo/vector-icons/MaterialCommunityIcons';
 import { usePayments } from '@hooks/usePayments';
 import { Avatar } from '@components/common/Avatar';
 import { Badge } from '@components/common/Badge';
@@ -21,9 +21,130 @@ import { Colors, Typography, Spacing, BorderRadius } from '@constants/theme';
 import { formatCurrency, formatDate } from '@utils/formatters';
 import type { Payment } from 'src/@types/payment.types';
 
+const createReceiptPreviewUri = (title: string, value: string, name: string, date: string) => {
+  const svg = `
+    <svg xmlns="http://www.w3.org/2000/svg" width="900" height="1320" viewBox="0 0 900 1320">
+      <defs>
+        <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#FFFFFF" />
+          <stop offset="100%" stop-color="#F7F7FB" />
+        </linearGradient>
+      </defs>
+      <rect width="900" height="1320" rx="42" fill="url(#bg)" />
+      <rect x="64" y="64" width="772" height="116" rx="24" fill="#6D28D9" />
+      <text x="112" y="138" font-family="Arial, sans-serif" font-size="48" font-weight="700" fill="#FFFFFF">${title}</text>
+      <rect x="64" y="224" width="772" height="2" fill="#E5E7EB" />
+      <text x="64" y="312" font-family="Arial, sans-serif" font-size="28" fill="#6B7280">Valor transferido</text>
+      <text x="64" y="400" font-family="Arial, sans-serif" font-size="86" font-weight="700" fill="#6D28D9">${value}</text>
+      <text x="64" y="492" font-family="Arial, sans-serif" font-size="28" fill="#6B7280">Para</text>
+      <text x="64" y="542" font-family="Arial, sans-serif" font-size="34" font-weight="700" fill="#111827">${name}</text>
+      <text x="64" y="600" font-family="Arial, sans-serif" font-size="24" fill="#6B7280">${date}</text>
+      <rect x="64" y="700" width="772" height="1" fill="#E5E7EB" />
+      <text x="64" y="770" font-family="Arial, sans-serif" font-size="28" fill="#6B7280">Mensagem</text>
+      <rect x="64" y="804" width="520" height="64" rx="18" fill="#F3E8FF" />
+      <text x="92" y="846" font-family="Arial, sans-serif" font-size="24" font-weight="700" fill="#6D28D9">Comprovante enviado para análise</text>
+      <text x="64" y="960" font-family="Arial, sans-serif" font-size="24" fill="#6B7280">Tipo de transferência</text>
+      <text x="64" y="1018" font-family="Arial, sans-serif" font-size="34" font-weight="700" fill="#111827">Pix</text>
+      <rect x="64" y="1104" width="772" height="120" rx="28" fill="#111827" />
+      <text x="450" y="1182" text-anchor="middle" font-family="Arial, sans-serif" font-size="34" font-weight="700" fill="#FFFFFF">Comprovante</text>
+    </svg>
+  `.trim();
+
+  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+};
+
+const DEMO_PAYMENTS: Payment[] = [
+  {
+    id: 'demo-payment-1',
+    passengerId: 'demo-passenger-1',
+    passengerName: 'Gabriel Campelo',
+    driverId: 'demo-driver-1',
+    amount: 165.9,
+    referenceMonth: '2026-05',
+    status: 'under_review',
+    method: 'pix',
+    receiptUrl: createReceiptPreviewUri('Transferindo', 'R$ 3.200,00', 'Gabriel Campelo', '29/01/2025 - 17:30'),
+    receiptUploadedAt: new Date('2026-05-21T09:15:00Z'),
+    createdAt: new Date('2026-05-21T09:10:00Z'),
+    updatedAt: new Date('2026-05-21T09:15:00Z'),
+  },
+  {
+    id: 'demo-payment-2',
+    passengerId: 'demo-passenger-2',
+    passengerName: 'Kauê',
+    driverId: 'demo-driver-1',
+    amount: 180,
+    referenceMonth: '2026-05',
+    status: 'under_review',
+    method: 'pix',
+    receiptUrl: createReceiptPreviewUri('Transferência PIX', 'R$ 286,00', 'Kauê', '29/01/2025 - 17:30'),
+    receiptUploadedAt: new Date('2026-05-20T14:32:00Z'),
+    createdAt: new Date('2026-05-20T14:28:00Z'),
+    updatedAt: new Date('2026-05-20T14:32:00Z'),
+  },
+  {
+    id: 'demo-payment-3',
+    passengerId: 'demo-passenger-3',
+    passengerName: 'João Paulo',
+    driverId: 'demo-driver-1',
+    amount: 149.5,
+    referenceMonth: '2026-05',
+    status: 'under_review',
+    method: 'transfer',
+    receiptUrl: createReceiptPreviewUri('Comprovante', 'R$ 149,50', 'João Paulo', '29/01/2025 - 17:30'),
+    receiptUploadedAt: new Date('2026-05-19T18:05:00Z'),
+    createdAt: new Date('2026-05-19T18:00:00Z'),
+    updatedAt: new Date('2026-05-19T18:05:00Z'),
+  },
+];
+
+const ReceiptFallback: React.FC<{ payment: Payment }> = ({ payment }) => (
+  <View style={styles.receiptFallback}>
+    <View style={styles.receiptFallbackHeader}>
+      <Text style={styles.receiptFallbackBrand}>Comprovante</Text>
+      <Text style={styles.receiptFallbackDate}>
+        {payment.receiptUploadedAt ? formatDate(payment.receiptUploadedAt) : ''}
+      </Text>
+    </View>
+
+    <View style={styles.receiptFallbackAmountBox}>
+      <Text style={styles.receiptFallbackAmountLabel}>Valor</Text>
+      <Text style={styles.receiptFallbackAmount}>{formatCurrency(payment.amount)}</Text>
+    </View>
+
+    <View style={styles.receiptFallbackDivider} />
+
+    <View style={styles.receiptFallbackRow}>
+      <Text style={styles.receiptFallbackLabel}>Passageiro</Text>
+      <Text style={styles.receiptFallbackValue}>{payment.passengerName}</Text>
+    </View>
+
+    <View style={styles.receiptFallbackRow}>
+      <Text style={styles.receiptFallbackLabel}>Status</Text>
+      <Text style={styles.receiptFallbackValue}>Pendente Análise</Text>
+    </View>
+
+    <View style={styles.receiptFallbackStamp}>
+      <Text style={styles.receiptFallbackStampText}>Comprovante</Text>
+    </View>
+  </View>
+);
+
 export const PaymentReviewScreen: React.FC = () => {
   const { pendingReviews, isLoading, approvePayment, rejectPayment } = usePayments();
   const [selected, setSelected] = useState<Payment | null>(null);
+  const [demoPayments, setDemoPayments] = useState<Payment[]>(DEMO_PAYMENTS);
+  const [receiptImageError, setReceiptImageError] = useState(false);
+
+  React.useEffect(() => {
+    setReceiptImageError(false);
+  }, [selected?.id]);
+
+  const visiblePayments = useMemo(
+    () => (pendingReviews.length > 0 ? pendingReviews : demoPayments),
+    [demoPayments, pendingReviews],
+  );
+  const useDemoData = pendingReviews.length === 0;
 
   const handleApprove = (payment: Payment) => {
     Alert.alert('Aprovar pagamento', `Confirmar pagamento de ${payment.passengerName}?`, [
@@ -31,7 +152,11 @@ export const PaymentReviewScreen: React.FC = () => {
       {
         text: 'Aprovar',
         onPress: () => {
-          approvePayment(payment.id);
+          if (useDemoData) {
+            setDemoPayments((current) => current.filter((item) => item.id !== payment.id));
+          } else {
+            approvePayment(payment.id);
+          }
           setSelected(null);
         },
       },
@@ -45,7 +170,11 @@ export const PaymentReviewScreen: React.FC = () => {
         text: 'Recusar',
         style: 'destructive',
         onPress: () => {
-          rejectPayment(payment.id, 'Comprovante não aceito');
+          if (useDemoData) {
+            setDemoPayments((current) => current.filter((item) => item.id !== payment.id));
+          } else {
+            rejectPayment(payment.id, 'Comprovante não aceito');
+          }
           setSelected(null);
         },
       },
@@ -71,14 +200,14 @@ export const PaymentReviewScreen: React.FC = () => {
   return (
     <SafeAreaView style={styles.safe}>
       <FlatList
-        data={pendingReviews}
+        data={visiblePayments}
         keyExtractor={(item) => item.id}
         renderItem={renderItem}
         ListHeaderComponent={
           <View style={styles.header}>
             <Text style={styles.title}>Comprovantes</Text>
             <Text style={styles.subtitle}>
-              {pendingReviews.length} aguardando revisão
+              {visiblePayments.length} aguardando revisão
             </Text>
           </View>
         }
@@ -86,8 +215,12 @@ export const PaymentReviewScreen: React.FC = () => {
           !isLoading ? (
             <EmptyState
               iconName="credit-card-outline"
-              title="Tudo em dia!"
-              description="Não há comprovantes pendentes de revisão."
+              title={useDemoData ? 'Comprovantes de demonstração' : 'Aguardando comprovantes'}
+              description={
+                useDemoData
+                  ? 'Esses dados são mockados para a apresentação da tela do motorista.'
+                  : 'Não há nenhum comprovante pendente de revisão no momento.'
+              }
             />
           ) : null
         }
@@ -114,9 +247,16 @@ export const PaymentReviewScreen: React.FC = () => {
                 </TouchableOpacity>
               </View>
 
-              {selected.receiptUrl && (
-                <Image source={{ uri: selected.receiptUrl }} style={styles.receipt} resizeMode="contain" />
-              )}
+              {(selected.receiptUrl || selected.receiptLocalUri) && !receiptImageError ? (
+                <Image
+                  source={{ uri: selected.receiptUrl ?? selected.receiptLocalUri! }}
+                  style={styles.receipt}
+                  resizeMode="contain"
+                  onError={() => setReceiptImageError(true)}
+                />
+              ) : (selected.receiptUrl || selected.receiptLocalUri) ? (
+                <ReceiptFallback payment={selected} />
+              ) : null}
 
               <View style={styles.modalActions}>
                 <Button
@@ -180,6 +320,78 @@ const styles = StyleSheet.create({
     fontWeight: Typography.fontWeight.semibold,
   },
   receipt: { width: '100%', height: 240, borderRadius: BorderRadius.md },
+  receiptFallback: {
+    width: '100%',
+    borderRadius: BorderRadius.md,
+    padding: Spacing.lg,
+    backgroundColor: '#F8FAFC',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    gap: Spacing.sm,
+  },
+  receiptFallbackHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  receiptFallbackBrand: {
+    fontSize: Typography.fontSize.lg,
+    fontWeight: Typography.fontWeight.bold,
+    color: Colors.textPrimary,
+  },
+  receiptFallbackDate: {
+    fontSize: Typography.fontSize.xs,
+    color: Colors.textSecondary,
+  },
+  receiptFallbackAmountBox: {
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.md,
+    borderRadius: BorderRadius.md,
+    backgroundColor: '#EEF2FF',
+  },
+  receiptFallbackAmountLabel: {
+    fontSize: Typography.fontSize.xs,
+    color: Colors.textSecondary,
+    textTransform: 'uppercase',
+    letterSpacing: 0.4,
+  },
+  receiptFallbackAmount: {
+    fontSize: Typography.fontSize.xl,
+    fontWeight: Typography.fontWeight.bold,
+    color: Colors.primary,
+    marginTop: 2,
+  },
+  receiptFallbackDivider: {
+    height: 1,
+    backgroundColor: '#E2E8F0',
+  },
+  receiptFallbackRow: {
+    gap: 2,
+  },
+  receiptFallbackLabel: {
+    fontSize: Typography.fontSize.xs,
+    color: Colors.textSecondary,
+    textTransform: 'uppercase',
+    letterSpacing: 0.4,
+  },
+  receiptFallbackValue: {
+    fontSize: Typography.fontSize.md,
+    color: Colors.textPrimary,
+    fontWeight: Typography.fontWeight.semibold,
+  },
+  receiptFallbackStamp: {
+    alignSelf: 'flex-start',
+    marginTop: Spacing.xs,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: 6,
+    borderRadius: BorderRadius.full,
+    backgroundColor: '#111827',
+  },
+  receiptFallbackStampText: {
+    fontSize: Typography.fontSize.xs,
+    fontWeight: Typography.fontWeight.bold,
+    color: Colors.white,
+  },
   modalActions: { flexDirection: 'row', gap: Spacing.md },
   actionBtn: { flex: 1 },
 });

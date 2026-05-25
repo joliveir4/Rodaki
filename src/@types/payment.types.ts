@@ -14,6 +14,7 @@ export interface Payment {
   status: PaymentStatus;
   method: PaymentMethod;
   receiptUrl?: string;       // URL do comprovante no Firebase Storage
+  receiptLocalUri?: string;  // Caminho local no dispositivo quando upload falhou
   receiptUploadedAt?: Date;
   reviewedAt?: Date;
   reviewNotes?: string;

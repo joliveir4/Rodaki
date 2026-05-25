@@ -9,7 +9,7 @@ import {
   Alert,
 } from 'react-native';
 import * as ExpoImagePicker from 'expo-image-picker';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import Icon from '@expo/vector-icons/MaterialCommunityIcons';
 import { Colors, Typography, Spacing, BorderRadius, Shadows } from '@constants/theme';
 
 // ─── Types ────────────────────────────────────────────────────────────────────

@@ -5,7 +5,7 @@ import type { DriverTabParamList, DriverStackParamList } from 'src/@types/naviga
 import { DRIVER_ROUTES, DRIVER_STACK_ROUTES } from '@constants/routes';
 import { Colors, Typography } from '@constants/theme';
 import { usePaymentStore } from '@store/payment.store';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import Icon from '@expo/vector-icons/MaterialCommunityIcons';
 
 // ─── Screens ──────────────────────────────────────────────────────────────────
 
@@ -15,6 +15,7 @@ import { ManagePassengersScreen } from '@screens/driver/ManagePassengersScreen';
 import { AddPassengerScreen } from '../screens/driver/AddPassengerScreen';
 import { DriverChatbotScreen } from '@screens/driver/ChatbotScreen';
 import { DriverProfileScreen } from '@screens/driver/DriverProfileScreen';
+import { PassengerPaymentsScreen } from '@screens/driver/PassengerPaymentsScreen';
 
 // ─── Navigators ───────────────────────────────────────────────────────────────
 
@@ -100,6 +101,11 @@ export const DriverNavigator: React.FC = () => (
     <Stack.Screen
       name={DRIVER_STACK_ROUTES.EDIT_PASSENGER}
       component={AddPassengerScreen}
+      options={{ animation: 'slide_from_right' }}
+    />
+    <Stack.Screen
+      name={DRIVER_STACK_ROUTES.PASSENGER_PAYMENTS}
+      component={PassengerPaymentsScreen}
       options={{ animation: 'slide_from_right' }}
     />
   </Stack.Navigator>

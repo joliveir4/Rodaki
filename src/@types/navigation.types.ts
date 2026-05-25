@@ -39,6 +39,7 @@ export type DriverStackParamList = {
   DriverTabs: undefined;
   AddPassenger: undefined;
   EditPassenger: { passengerId: string };
+  PassengerPayments: { passengerId: string };
 };
 
 // ─── Screen Props Helpers ─────────────────────────────────────────────────────

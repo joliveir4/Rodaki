@@ -12,6 +12,7 @@ interface PassengersState {
   setPassengers: (passengers: Passenger[]) => void;
   addPassenger: (passenger: Passenger) => void;
   updatePassenger: (id: string, updates: Partial<Passenger>) => void;
+  removePassenger: (id: string) => void;
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
   reset: () => void;
@@ -36,6 +37,11 @@ export const usePassengersStore = create<PassengersState>((set) => ({
       passengers: state.passengers.map((p) =>
         p.id === id ? { ...p, ...updates } : p,
       ),
+    })),
+
+  removePassenger: (id) =>
+    set((state) => ({
+      passengers: state.passengers.filter((p) => p.id !== id),
     })),
 
   setLoading: (isLoading) => set({ isLoading }),

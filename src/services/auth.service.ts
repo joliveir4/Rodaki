@@ -52,6 +52,15 @@ export const authService = {
         email: data.email,
         phone: data.phone,
         role: data.role,
+        // driver-specific fields
+        ...(data.role === 'driver'
+          ? {
+              vehicleModel: (data as any).vehicleModel ?? '',
+              vehiclePlate: (data as any).vehiclePlate ?? '',
+              cpf: (data as any).cpf ?? '',
+              address: (data as any).address ?? undefined,
+            }
+          : {}),
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
       };

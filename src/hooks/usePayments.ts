@@ -1,8 +1,7 @@
 import { useEffect, useCallback } from 'react';
 import { usePaymentStore } from '@store/payment.store';
 import { useAuthStore, selectAsDriver, selectAsPassenger } from '@store/auth.store';
-import { paymentService } from '@services/payment.service';
-import type { PaymentStatus } from 'src/@types/payment.types';
+import { getLocalPaymentReceipt, saveLocalPaymentReceipt } from '@utils/localPayment';
 
 // ─── usePayments ──────────────────────────────────────────────────────────────
 
@@ -32,7 +31,7 @@ export const usePayments = () => {
     const load = async () => {
       try {
         setLoading(true);
-        const payment = await paymentService.getCurrentMonthPayment(passenger.id);
+        const payment = await getLocalPaymentReceipt(passenger.id);
         setCurrentMonthPayment(payment);
       } catch (err: any) {
         setError(err.message ?? 'Erro ao carregar pagamento');
@@ -49,31 +48,26 @@ export const usePayments = () => {
   useEffect(() => {
     if (!driver) return;
 
-    const unsubscribe = paymentService.subscribeToPendingReviews(
-      driver.id,
-      (payments) => {
-        setPendingReviews(payments);
-      },
-    );
-
-    return unsubscribe;
+    // Modo local-only: não há sincronização de comprovantes para revisão no motorista.
+    setPendingReviews([]);
   }, [driver?.id]);
 
   // ─── Passageiro: envio de comprovante ─────────────────────────────────────
 
   const submitReceipt = useCallback(
-    async (imageUri: string) => {
+    async (imageUri: string, imageFile?: Blob) => {
       if (!passenger || !driver) return;
 
       try {
         setUploading(true);
-        const payment = await paymentService.submitPaymentReceipt(
-          passenger.id,
-          passenger.name,
-          passenger.driverId,
-          passenger.monthlyFee,
+        const payment = await saveLocalPaymentReceipt({
+          passengerId: passenger.id,
+          passengerName: passenger.name,
+          driverId: passenger.driverId,
+          amount: passenger.monthlyFee,
           imageUri,
-        );
+          imageFile,
+        });
         setCurrentMonthPayment(payment);
       } catch (err: any) {
         setError(err.message ?? 'Erro ao enviar comprovante');
@@ -88,30 +82,14 @@ export const usePayments = () => {
 
   const approvePayment = useCallback(
     async (paymentId: string) => {
-      try {
-        setLoading(true);
-        await paymentService.reviewPayment(paymentId, 'approved');
-        updatePaymentStatus(paymentId, 'approved');
-      } catch (err: any) {
-        setError(err.message ?? 'Erro ao aprovar pagamento');
-      } finally {
-        setLoading(false);
-      }
+      setError('Revisão de comprovantes está indisponível no modo local.');
     },
     [],
   );
 
   const rejectPayment = useCallback(
     async (paymentId: string, notes?: string) => {
-      try {
-        setLoading(true);
-        await paymentService.reviewPayment(paymentId, 'rejected', notes);
-        updatePaymentStatus(paymentId, 'rejected', notes);
-      } catch (err: any) {
-        setError(err.message ?? 'Erro ao rejeitar pagamento');
-      } finally {
-        setLoading(false);
-      }
+      setError('Revisão de comprovantes está indisponível no modo local.');
     },
     [],
   );

@@ -54,7 +54,8 @@
           "photosPermission": "Precisamos da galeria para comprovantes de pagamento.",
           "cameraPermission": "Precisamos da câmera para fotografar comprovantes."
         }
-      ]
+      ],
+      "expo-font"
     ],
     "extra": {
       "llmModel": "gemini-1.5-flash",

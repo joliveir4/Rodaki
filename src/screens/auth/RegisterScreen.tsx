@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -9,7 +9,7 @@ import {
   Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import Icon from '@expo/vector-icons/MaterialCommunityIcons';
 import { useAuth } from '@hooks/useAuth';
 import { Input } from '@components/forms/Input';
 import { Button } from '@components/common/Button';
@@ -19,6 +19,8 @@ import {
   validateName,
   validatePhone,
   getPasswordError,
+  isValidCPF,
+  validateRequired,
 } from '@utils/validators';
 import type { AuthScreenProps } from 'src/@types/navigation.types';
 
@@ -31,6 +33,16 @@ export const RegisterScreen: React.FC<AuthScreenProps<'Register'>> = ({ navigati
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
+  const [cpf, setCpf] = useState('');
+  const [vehicleModel, setVehicleModel] = useState('');
+  const [vehiclePlate, setVehiclePlate] = useState('');
+  const [cep, setCep] = useState('');
+  const [street, setStreet] = useState('');
+  const [number, setNumber] = useState('');
+  const [neighborhood, setNeighborhood] = useState('');
+  const [city, setCity] = useState('');
+  const [stateField, setStateField] = useState('');
+  const [cepLoading, setCepLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const validate = (): boolean => {
@@ -43,13 +55,79 @@ export const RegisterScreen: React.FC<AuthScreenProps<'Register'>> = ({ navigati
     if (emailErr) newErrors.email = emailErr;
     if (phoneErr) newErrors.phone = phoneErr;
     if (passErr) newErrors.password = passErr;
+    // Driver-specific validations
+    if (!isValidCPF(cpf)) newErrors.cpf = 'CPF inválido';
+    const vehicleModelErr = validateRequired(vehicleModel, 'Veículo');
+    const vehiclePlateErr = validateRequired(vehiclePlate, 'Placa do veículo');
+    if (vehicleModelErr) newErrors.vehicleModel = vehicleModelErr;
+    if (vehiclePlateErr) newErrors.vehiclePlate = vehiclePlateErr;
+    const streetErr = validateRequired(street, 'Rua');
+    const numberErr = validateRequired(number, 'Número');
+    const cityErr = validateRequired(city, 'Cidade');
+    const stateErr = validateRequired(stateField, 'Estado');
+    if (streetErr) newErrors.street = streetErr;
+    if (numberErr) newErrors.number = numberErr;
+    if (cityErr) newErrors.city = cityErr;
+    if (stateErr) newErrors.state = stateErr;
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
+  const fetchCep = useCallback(async (digits: string) => {
+    try {
+      setCepLoading(true);
+      setErrors((p) => {
+        const copy = { ...p };
+        delete copy.cep;
+        return copy;
+      });
+      const res = await fetch(`https://viacep.com.br/ws/${digits}/json/`);
+      if (!res.ok) throw new Error('network');
+      const data = await res.json();
+      if (data.erro) {
+        setErrors((p) => ({ ...p, cep: 'CEP não encontrado' }));
+        return;
+      }
+      setStreet(data.logradouro ?? '');
+      setNeighborhood(data.bairro ?? '');
+      setCity(data.localidade ?? '');
+      setStateField(data.uf ?? '');
+    } catch (err) {
+      setErrors((p) => ({ ...p, cep: 'Erro ao buscar CEP' }));
+    } finally {
+      setCepLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    const digits = cep.replace(/\D/g, '');
+    if (digits.length !== 8) return;
+    const id = setTimeout(() => fetchCep(digits), 500);
+    return () => clearTimeout(id);
+  }, [cep, fetchCep]);
+
   const handleRegister = () => {
     if (!validate()) return;
-    register({ name: name.trim(), email: email.trim(), phone, password, role: 'driver' });
+    const address = {
+      cep,
+      street,
+      number,
+      neighborhood,
+      city,
+      state: stateField,
+    };
+
+    register({
+      name: name.trim(),
+      email: email.trim(),
+      phone,
+      password,
+      role: 'driver',
+      cpf,
+      vehicleModel,
+      vehiclePlate,
+      address,
+    });
   };
 
   return (
@@ -118,6 +196,83 @@ export const RegisterScreen: React.FC<AuthScreenProps<'Register'>> = ({ navigati
               onChangeText={setPassword}
               error={errors.password}
               secureTextEntry
+            />
+
+            <Input
+              label="CPF"
+              placeholder="000.000.000-00"
+              value={cpf}
+              onChangeText={setCpf}
+              error={errors.cpf}
+              keyboardType="numeric"
+            />
+
+            <Input
+              label="Veículo (modelo)"
+              placeholder="Ex: Fiat Uno"
+              value={vehicleModel}
+              onChangeText={setVehicleModel}
+              error={errors.vehicleModel}
+            />
+
+            <Input
+              label="Placa do veículo"
+              placeholder="AAA0A00"
+              value={vehiclePlate}
+              onChangeText={setVehiclePlate}
+              error={errors.vehiclePlate}
+            />
+
+            <Input
+              label="CEP"
+              placeholder="00000-000"
+              value={cep}
+              onChangeText={setCep}
+              onBlur={() => {
+                const digits = cep.replace(/\D/g, '');
+                if (digits.length === 8) fetchCep(digits);
+              }}
+              loading={cepLoading}
+              error={errors.cep}
+            />
+
+            <Input
+              label="Rua"
+              placeholder="Rua Exemplo"
+              value={street}
+              onChangeText={setStreet}
+              error={errors.street}
+            />
+
+            <Input
+              label="Número"
+              placeholder="123"
+              value={number}
+              onChangeText={setNumber}
+              error={errors.number}
+            />
+
+            <Input
+              label="Bairro"
+              placeholder="Centro"
+              value={neighborhood}
+              onChangeText={setNeighborhood}
+            />
+
+            <Input
+              label="Cidade"
+              placeholder="São Paulo"
+              value={city}
+              onChangeText={setCity}
+              error={errors.city}
+            />
+
+            <Input
+              label="Estado"
+              placeholder="SP"
+              value={stateField}
+              onChangeText={setStateField}
+              error={errors.state}
             />
 
             <Button

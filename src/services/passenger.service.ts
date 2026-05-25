@@ -12,6 +12,8 @@ import {
   where,
   onSnapshot,
   arrayUnion,
+  arrayRemove,
+  writeBatch,
   serverTimestamp,
   type Unsubscribe,
 } from 'firebase/firestore';
@@ -175,6 +177,37 @@ export const passengerService = {
       createdAt: data.createdAt?.toDate?.() ?? new Date(),
       updatedAt: data.updatedAt?.toDate?.() ?? new Date(),
     } as Passenger;
+  },
+
+  /**
+   * Atualiza os dados do passageiro
+   */
+  async updatePassenger(uid: string, updates: Partial<CreatePassengerData & { isActive?: boolean }>): Promise<void> {
+    const payload: Record<string, unknown> = {
+      updatedAt: serverTimestamp(),
+    };
+
+    if (updates.name) payload.name = updates.name;
+    if (updates.email) payload.email = updates.email;
+    if (updates.phone) payload.phone = updates.phone;
+    if (updates.university) payload.university = updates.university;
+    if (updates.address) payload.address = updates.address;
+    if (typeof updates.isActive === 'boolean') payload.isActive = updates.isActive;
+
+    await updateDoc(doc(firestore, USERS_COLLECTION, uid), payload);
+  },
+
+  /**
+   * Exclui um passageiro e remove o uid da lista de passageiros do motorista.
+   */
+  async deletePassenger(passengerId: string, driverId: string): Promise<void> {
+    const batch = writeBatch(firestore);
+    batch.delete(doc(firestore, USERS_COLLECTION, passengerId));
+    batch.update(doc(firestore, USERS_COLLECTION, driverId), {
+      passengerIds: arrayRemove(passengerId),
+      updatedAt: serverTimestamp(),
+    });
+    await batch.commit();
   },
 
   /**

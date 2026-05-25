@@ -224,13 +224,11 @@ export const ManagePassengersScreen: React.FC = () => {
   };
 
   const handleEdit = (id: string) => {
-    // TODO: navigation.navigate(DRIVER_STACK_ROUTES.EDIT_PASSENGER, { passengerId: id })
-    console.log('Editar passageiro', id);
+    navigation.navigate(DRIVER_STACK_ROUTES.EDIT_PASSENGER, { passengerId: id });
   };
 
   const handlePayment = (id: string) => {
-    // TODO: navigation.navigate para tela de pagamento
-    console.log('Ver pagamento', id);
+    navigation.navigate(DRIVER_STACK_ROUTES.PASSENGER_PAYMENTS, { passengerId: id });
   };
 
   return (

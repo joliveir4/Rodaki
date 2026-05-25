@@ -14,7 +14,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import Icon from '@expo/vector-icons/MaterialCommunityIcons';
 import { Colors, Typography, Spacing, BorderRadius, Shadows } from '@constants/theme';
 import { Avatar } from '@components/common/Avatar';
 import { Input } from '@components/common/Input';
@@ -1177,26 +1177,23 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.lg,
     borderBottomLeftRadius: BorderRadius.xl + 8,
     borderBottomRightRadius: BorderRadius.xl + 8,
-    gap: Spacing.sm,
+    gap: Spacing.md,
   },
   avatarWrapper: {
-    position: 'relative',
-    marginBottom: Spacing.xs,
+    alignItems: 'center',
+    gap: Spacing.sm,
   },
   cameraBtn: {
-    position: 'absolute',
-    bottom: 0,
-    right: 0,
     borderRadius: BorderRadius.full,
     backgroundColor: Colors.primaryDark,
-    borderWidth: 2.5,
-    borderColor: Colors.white,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.18)',
     alignItems: 'center',
     justifyContent: 'center',
     flexDirection: 'row',
     gap: 6,
-    paddingHorizontal: Spacing.sm,
-    minHeight: 56,
+    paddingHorizontal: Spacing.md,
+    minHeight: 44,
   },
   cameraText: {
     fontSize: Typography.fontSize.xs,

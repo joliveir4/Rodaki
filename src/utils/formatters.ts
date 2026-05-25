@@ -104,7 +104,7 @@ export const formatPixKeyType = (type: PixKeyType): string => {
 export const formatPaymentStatus = (status: PaymentStatus): string => {
   const labels: Record<PaymentStatus, string> = {
     pending: 'Pendente',
-    under_review: 'Em análise',
+    under_review: 'Pendente Análise',
     approved: 'Aprovado',
     rejected: 'Recusado',
   };

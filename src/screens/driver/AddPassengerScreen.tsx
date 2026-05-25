@@ -11,9 +11,9 @@ import {
   type TextInput as RNTextInput,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import Icon from '@expo/vector-icons/MaterialCommunityIcons';
 import { Colors, Typography, Spacing, BorderRadius, Shadows } from '@constants/theme';
 import { Input } from '@components/common/Input';
 import { Button } from '@components/common/Button';
@@ -24,7 +24,13 @@ import type { DriverStackParamList } from '../../@types/navigation.types';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-type Navigation = NativeStackNavigationProp<DriverStackParamList, 'AddPassenger'>;
+type Navigation = NativeStackNavigationProp<DriverStackParamList, 'AddPassenger' | 'EditPassenger'>;
+
+type Route = {
+  params?: {
+    passengerId?: string;
+  };
+};
     
 interface FormValues {
   name: string;
@@ -178,12 +184,17 @@ const INITIAL_VALUES: FormValues = {
 
 export const AddPassengerScreen: React.FC = () => {
   const navigation = useNavigation<Navigation>();
+  const route = useRoute<Route>();
+  const passengerId = route.params?.passengerId;
   const driver = useAuthStore(selectAsDriver);
   const addPassenger = usePassengersStore((s) => s.addPassenger);
+  const updatePassengerStore = usePassengersStore((s) => s.updatePassenger);
+  const removePassengerStore = usePassengersStore((s) => s.removePassenger);
   const [values, setValues] = useState<FormValues>(INITIAL_VALUES);
   const [errors, setErrors] = useState<FormErrors>({});
   const [cepLoading, setCepLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [isActive, setIsActive] = useState(true);
 
   // Refs para avançar foco entre campos com "next" keyboard
   const emailRef = useRef<RNTextInput>(null);
@@ -228,6 +239,33 @@ export const AddPassengerScreen: React.FC = () => {
     numberRef.current?.focus();
   }, [values.cep]);
 
+  // ─── Load passenger when editing ─────────────────────────────────────
+  React.useEffect(() => {
+    if (!passengerId) return;
+
+    let mounted = true;
+    (async () => {
+      const p = await passengerService.getById(passengerId);
+      if (!p || !mounted) return;
+
+      setValues({
+        name: p.name || '',
+        email: p.email || '',
+        phone: p.phone || '',
+        cep: p.address?.cep || '',
+        street: p.address?.street || '',
+        number: p.address?.number || '',
+        neighborhood: p.address?.neighborhood || '',
+        city: p.address?.city || '',
+        state: p.address?.state || '',
+        university: p.university || '',
+      });
+      setIsActive(p.isActive !== false);
+    })();
+
+    return () => { mounted = false; };
+  }, [passengerId]);
+
   // ─── Submit ─────────────────────────────────────────────────────────────────
 
   const handleSave = useCallback(async () => {
@@ -244,40 +282,81 @@ export const AddPassengerScreen: React.FC = () => {
 
     setSaving(true);
     try {
-      const createdPassenger = await passengerService.createPassenger(
-        {
-          name: values.name.trim(),
-          email: values.email.trim(),
-          phone: values.phone.replace(/\D/g, ''),
-          university: values.university.trim(),
-          address: {
-            cep: values.cep.replace(/\D/g, ''),
-            street: values.street.trim(),
-            number: values.number.trim(),
-            neighborhood: values.neighborhood.trim(),
-            city: values.city.trim(),
-            state: values.state.trim().toUpperCase(),
-          },
+      const payload = {
+        name: values.name.trim(),
+        email: values.email.trim(),
+        phone: values.phone.replace(/\D/g, ''),
+        university: values.university.trim(),
+        address: {
+          cep: values.cep.replace(/\D/g, ''),
+          street: values.street.trim(),
+          number: values.number.trim(),
+          neighborhood: values.neighborhood.trim(),
+          city: values.city.trim(),
+          state: values.state.trim().toUpperCase(),
         },
-        driver.id,
-      );
+        isActive,
+      };
 
-      addPassenger(createdPassenger);
+      if (passengerId) {
+        // Edit mode
+        await passengerService.updatePassenger(passengerId, payload);
+        updatePassengerStore(passengerId, payload as any);
+        Alert.alert('Passageiro atualizado', 'As alterações foram salvas.', [
+          { text: 'OK', onPress: () => navigation.goBack() },
+        ]);
+      } else {
+        // Create mode
+        if (!driver) {
+          Alert.alert('Erro', 'Sessão do motorista não encontrada. Faça login novamente.');
+          return;
+        }
 
-      Alert.alert(
-        'Passageiro criado com sucesso',
-        'O passageiro foi vinculado ao motorista e ja aparece na lista.',
-        [{ text: 'OK', onPress: () => navigation.goBack() }],
-      );
+        const createdPassenger = await passengerService.createPassenger(payload, driver.id);
+        addPassenger(createdPassenger);
+        Alert.alert('Passageiro criado com sucesso', 'O passageiro foi vinculado ao motorista e ja aparece na lista.', [
+          { text: 'OK', onPress: () => navigation.goBack() },
+        ]);
+      }
     } catch (err: any) {
       const message: string = err?.code === 'auth/email-already-in-use'
         ? 'Este e-mail já está cadastrado na plataforma.'
-        : err?.message ?? 'Ocorreu um erro ao cadastrar o passageiro.';
-      Alert.alert('Erro ao cadastrar', message);
+        : err?.message ?? 'Ocorreu um erro ao salvar os dados do passageiro.';
+      Alert.alert('Erro', message);
     } finally {
       setSaving(false);
     }
-  }, [values, driver, navigation, addPassenger]);
+  }, [values, driver, navigation, addPassenger, passengerId, isActive, updatePassengerStore]);
+
+  const handleDeletePassenger = useCallback(() => {
+    if (!passengerId || !driver) return;
+
+    Alert.alert(
+      'Excluir passageiro',
+      'Essa ação remove o passageiro da lista do motorista e não pode ser desfeita.',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Excluir',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              setSaving(true);
+              await passengerService.deletePassenger(passengerId, driver.id);
+              removePassengerStore(passengerId);
+              Alert.alert('Passageiro excluído', 'O passageiro foi removido com sucesso.', [
+                { text: 'OK', onPress: () => navigation.goBack() },
+              ]);
+            } catch (err: any) {
+              Alert.alert('Erro', err?.message ?? 'Não foi possível excluir o passageiro.');
+            } finally {
+              setSaving(false);
+            }
+          },
+        },
+      ],
+    );
+  }, [passengerId, driver, navigation, removePassengerStore]);
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
@@ -294,8 +373,8 @@ export const AddPassengerScreen: React.FC = () => {
         </TouchableOpacity>
 
         <View style={styles.headerCenter}>
-          <Text style={styles.headerTitle}>Novo Passageiro</Text>
-          <Text style={styles.headerSubtitle}>Preencha os dados do aluno</Text>
+          <Text style={styles.headerTitle}>{passengerId ? 'Editar Passageiro' : 'Novo Passageiro'}</Text>
+          <Text style={styles.headerSubtitle}>{passengerId ? 'Altere os dados do aluno' : 'Preencha os dados do aluno'}</Text>
         </View>
 
         {/* Espaço reservado para alinhar o título ao centro */}
@@ -471,6 +550,35 @@ export const AddPassengerScreen: React.FC = () => {
             />
           </FormSection>
 
+          {passengerId ? (
+            <FormSection iconName="account-check-outline" title="Status do Passageiro">
+              <View style={statusStyles.statusCard}>
+                <View style={statusStyles.statusTextRow}>
+                  <Text style={statusStyles.statusLabel}>Passageiro ativo</Text>
+                  <Text style={statusStyles.statusHelper}>
+                    Defina se ele deve aparecer como ativo ou inativo na lista do motorista.
+                  </Text>
+                </View>
+
+                <TouchableOpacity
+                  style={[statusStyles.toggle, isActive ? statusStyles.toggleActive : statusStyles.toggleInactive]}
+                  onPress={() => setIsActive((current) => !current)}
+                  activeOpacity={0.8}
+                >
+                  <View style={[statusStyles.switchThumb, isActive ? statusStyles.switchThumbActive : statusStyles.switchThumbInactive]}>
+                    <Icon name={isActive ? 'check' : 'close'} size={16} color={Colors.white} />
+                  </View>
+                  <View style={statusStyles.toggleTextWrap}>
+                    <Text style={statusStyles.toggleTitle}>{isActive ? 'Ativo' : 'Inativo'}</Text>
+                    <Text style={statusStyles.toggleSubtitle}>
+                      {isActive ? 'Disponível para acompanhamento' : 'Oculto da lista ativa'}
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              </View>
+            </FormSection>
+          ) : null}
+
           {/* Espaço extra para o botão flutuante */}
           <View style={styles.bottomPad} />
         </ScrollView>
@@ -478,6 +586,16 @@ export const AddPassengerScreen: React.FC = () => {
 
       {/* ── Footer com botão Salvar ─────────────────────────────────────────── */}
       <View style={styles.footer}>
+        {passengerId ? (
+          <Button
+            label={saving ? 'Salvando...' : 'Excluir Passageiro'}
+            variant="danger"
+            onPress={handleDeletePassenger}
+            fullWidth
+            disabled={saving}
+            style={styles.deleteBtn}
+          />
+        ) : null}
         <Button
           label={saving ? 'Salvando...' : 'Salvar Passageiro'}
           variant="primary"
@@ -564,5 +682,69 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: Colors.border,
     ...Shadows.md,
+  },
+  deleteBtn: {
+    marginBottom: Spacing.sm,
+  },
+});
+
+const statusStyles = StyleSheet.create({
+  statusCard: {
+    gap: Spacing.md,
+  },
+  statusTextRow: {
+    gap: 4,
+  },
+  statusLabel: {
+    fontSize: Typography.fontSize.md,
+    fontWeight: Typography.fontWeight.semibold,
+    color: Colors.textPrimary,
+  },
+  statusHelper: {
+    fontSize: Typography.fontSize.sm,
+    color: Colors.textSecondary,
+    lineHeight: 20,
+  },
+  toggle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.md,
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.md,
+    borderWidth: 1,
+  },
+  toggleActive: {
+    backgroundColor: '#F0FDF4',
+    borderColor: '#86EFAC',
+  },
+  toggleInactive: {
+    backgroundColor: '#FEF2F2',
+    borderColor: '#FECACA',
+  },
+  switchThumb: {
+    width: 44,
+    height: 44,
+    borderRadius: BorderRadius.full,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  switchThumbActive: {
+    backgroundColor: Colors.success,
+  },
+  switchThumbInactive: {
+    backgroundColor: Colors.error,
+  },
+  toggleTextWrap: {
+    flex: 1,
+    gap: 2,
+  },
+  toggleTitle: {
+    fontSize: Typography.fontSize.md,
+    fontWeight: Typography.fontWeight.semibold,
+    color: Colors.textPrimary,
+  },
+  toggleSubtitle: {
+    fontSize: Typography.fontSize.sm,
+    color: Colors.textSecondary,
   },
 });

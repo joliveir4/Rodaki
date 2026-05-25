@@ -5,7 +5,7 @@ import {
   StyleSheet,
   type ViewStyle,
 } from 'react-native';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import Icon from '@expo/vector-icons/MaterialCommunityIcons';
 import { Colors, Typography, Spacing, BorderRadius } from '@constants/theme';
 
 // ─── Types ────────────────────────────────────────────────────────────────────

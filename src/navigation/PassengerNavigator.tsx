@@ -4,7 +4,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import type { PassengerTabParamList, PassengerStackParamList } from 'src/@types/navigation.types';
 import { PASSENGER_ROUTES, PASSENGER_STACK_ROUTES } from '@constants/routes';
 import { Colors, Typography } from '@constants/theme';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import Icon from '@expo/vector-icons/MaterialCommunityIcons';
 
 // ─── Screens ──────────────────────────────────────────────────────────────────
 

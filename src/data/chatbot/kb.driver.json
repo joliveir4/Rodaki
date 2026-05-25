@@ -156,8 +156,8 @@
   {
     "id": "driver-23",
     "role": "driver",
-    "question": "23) O que significam os status do pagamento (pendente/em análise/aprovado/rejeitado)?",
-    "answer": "Pendente = aguardando; Em análise = em revisão; Aprovado = ok; Rejeitado = problema.",
+    "question": "23) O que significam os status do pagamento (pendente/pendente análise/aprovado/rejeitado)?",
+    "answer": "Pendente = aguardando; Pendente Análise = em revisão; Aprovado = ok; Rejeitado = problema.",
     "tags": []
   },
   {

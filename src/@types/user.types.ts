@@ -25,6 +25,8 @@ export interface PassengerAddress {
 export interface Passenger extends User {
   role: 'passenger';
   driverId: string;          // Motorista responsável
+  driverPixKey?: string;     // Snapshot da chave PIX do motorista
+  driverPixKeyType?: PixKeyType;
   routeId: string;           // Rota associada
   monthlyFee: number;        // Mensalidade
   isActive: boolean;
@@ -36,6 +38,7 @@ export interface Driver extends User {
   role: 'driver';
   vehiclePlate: string;
   vehicleModel: string;
+  cpf?: string;
   passengerIds: string[];    // Lista de passageiros gerenciados
   pixKey: string;            // Chave PIX para pagamento
   pixKeyType: PixKeyType;
@@ -53,4 +56,8 @@ export interface RegisterData extends AuthCredentials {
   name: string;
   phone: string;
   role: UserRole;
+  cpf?: string;
+  vehicleModel?: string;
+  vehiclePlate?: string;
+  address?: PassengerAddress;
 }

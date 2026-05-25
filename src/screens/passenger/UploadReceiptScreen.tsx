@@ -16,11 +16,11 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import Icon from '@expo/vector-icons/MaterialCommunityIcons';
 import { Colors, Typography, Spacing, BorderRadius, Shadows } from '@constants/theme';
 import { useAuthStore, selectAsPassenger } from '@store/auth.store';
 import { authService } from '@services/auth.service';
-import { paymentService } from '@services/payment.service';
+import { saveLocalPaymentReceipt } from '@utils/localPayment';
 import { formatMonth, getCurrentMonthISO } from '@utils/formatters';
 import type { Driver } from 'src/@types/user.types';
 import type { PixKeyType } from 'src/@types/user.types';
@@ -395,10 +395,14 @@ export const UploadReceiptScreen: React.FC = () => {
     })();
   }, [passenger?.driverId]);
 
+  const driverPixKey = driver?.pixKey ?? passenger?.driverPixKey ?? null;
+  const driverPixKeyType = driver?.pixKeyType ?? passenger?.driverPixKeyType ?? null;
+
   // ── Form state ─────────────────────────────────────────────────────────────
   const [selectedMonth, setSelectedMonth] = useState<string>(getCurrentMonthISO());
   const [amountCents, setAmountCents] = useState<number>(0);       // integer cents
   const [receiptUri, setReceiptUri] = useState<string | null>(null);
+  const [receiptFile, setReceiptFile] = useState<Blob | null>(null);
   const [isMonthModalOpen, setIsMonthModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -434,11 +438,34 @@ export const UploadReceiptScreen: React.FC = () => {
     });
     if (!result.canceled && result.assets[0]) {
       setReceiptUri(result.assets[0].uri);
+      setReceiptFile(null);
     }
   }, []);
 
   const handleLibrary = useCallback(async () => {
+    // Web: use input[file] to obtain a Blob
+    if (Platform.OS === 'web') {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const documentRef = (globalThis as any).document;
+      if (documentRef?.createElement) {
+        const file = await new Promise<File | null>((resolve) => {
+          const input = documentRef.createElement('input');
+          input.type = 'file';
+          input.accept = 'image/*';
+          input.onchange = () => resolve(input.files?.[0] ?? null);
+          input.click();
+        });
+        if (file) {
+          const url = URL.createObjectURL(file);
+          setReceiptUri(url);
+          setReceiptFile(file);
+        }
+      }
+      return;
+    }
+
     if (!(await requestPermission('library'))) return;
+
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: 'images',
       quality: 0.85,
@@ -446,6 +473,7 @@ export const UploadReceiptScreen: React.FC = () => {
     });
     if (!result.canceled && result.assets[0]) {
       setReceiptUri(result.assets[0].uri);
+      setReceiptFile(null);
     }
   }, []);
 
@@ -468,21 +496,22 @@ export const UploadReceiptScreen: React.FC = () => {
 
     try {
       setIsSubmitting(true);
-      await paymentService.submitPaymentReceipt(
-        passenger.id,
-        passenger.name,
-        passenger.driverId,
-        centsToAmount(amountCents),
-        receiptUri,
-        selectedMonth,
-      );
+      await saveLocalPaymentReceipt({
+        passengerId: passenger.id,
+        passengerName: passenger.name,
+        driverId: passenger.driverId,
+        amount: centsToAmount(amountCents),
+        imageUri: receiptUri!,
+        referenceMonth: selectedMonth,
+        imageFile: receiptFile ?? undefined,
+      });
       Alert.alert(
-        'Comprovante enviado!',
-        'Seu comprovante foi enviado ao motorista. Aguarde a confirmação.',
+        'Comprovante salvo!',
+        'Seu comprovante foi salvo neste dispositivo.',
         [{ text: 'OK', onPress: () => navigation.goBack() }],
       );
     } catch {
-      Alert.alert('Erro', 'Não foi possível enviar o comprovante. Tente novamente.');
+      Alert.alert('Erro', 'Não foi possível salvar o comprovante. Tente novamente.');
     } finally {
       setIsSubmitting(false);
     }
@@ -518,16 +547,28 @@ export const UploadReceiptScreen: React.FC = () => {
         keyboardShouldPersistTaps="handled"
       >
         {/* ── PIX Key ──────────────────────────────────────────────────────── */}
-        <SectionCard iconName="account-outline" title="Chave Pix">
+        <SectionCard iconName="account-outline" title="Chave Pix do Motorista">
           {isLoadingDriver ? (
             <ActivityIndicator color={Colors.primary} style={{ marginVertical: Spacing.sm }} />
-          ) : driver ? (
+          ) : (driver || driverPixKey) ? (
             <View style={styles.pixRow}>
-              <Text style={styles.pixType}>
-                {PIX_TYPE_LABELS[driver.pixKeyType] ?? 'PIX'}
-              </Text>
-              <Text style={styles.pixKey} selectable>{driver.pixKey}</Text>
-              <Text style={styles.pixOwner}>{driver.name}</Text>
+              <View style={styles.pixMetaRow}>
+                <Text style={styles.pixMetaLabel}>Tipo da chave</Text>
+                <Text style={styles.pixType}>
+                  {driverPixKeyType ? PIX_TYPE_LABELS[driverPixKeyType] : 'PIX'}
+                </Text>
+              </View>
+              {driverPixKey ? (
+                <View style={styles.pixValueCard}>
+                  <Text style={styles.pixValueLabel}>Chave PIX do motorista</Text>
+                  <Text style={styles.pixKey} selectable>
+                    {driverPixKey}
+                  </Text>
+                  <Text style={styles.pixOwner}>{driver?.name ?? 'Motorista'}</Text>
+                </View>
+              ) : (
+                <Text style={styles.pixPlaceholder}>O motorista ainda não definiu uma chave PIX.</Text>
+              )}
             </View>
           ) : (
             <Text style={styles.pixPlaceholder}>Chave PIX não disponível</Text>
@@ -660,20 +701,41 @@ const styles = StyleSheet.create({
 
   // PIX
   pixRow: {
+    gap: Spacing.sm,
+  },
+  pixMetaRow: {
     gap: 2,
   },
-  pixType: {
+  pixMetaLabel: {
     fontSize: Typography.fontSize.xs,
-    color: Colors.textSecondary,
+    color: Colors.textDisabled,
+    fontWeight: Typography.fontWeight.medium,
+    textTransform: 'uppercase',
+    letterSpacing: 0.4,
+  },
+  pixType: {
+    fontSize: Typography.fontSize.sm,
+    color: Colors.primary,
+    fontWeight: Typography.fontWeight.semibold,
+  },
+  pixValueCard: {
+    backgroundColor: Colors.surfaceVariant,
+    borderRadius: BorderRadius.md,
+    padding: Spacing.md,
+    gap: 4,
+  },
+  pixValueLabel: {
+    fontSize: Typography.fontSize.xs,
+    color: Colors.textDisabled,
     fontWeight: Typography.fontWeight.medium,
     textTransform: 'uppercase',
     letterSpacing: 0.4,
   },
   pixKey: {
-    fontSize: Typography.fontSize.xl,
+    fontSize: Typography.fontSize.lg,
     fontWeight: Typography.fontWeight.bold,
     color: Colors.textPrimary,
-    marginVertical: 2,
+    marginTop: 2,
   },
   pixOwner: {
     fontSize: Typography.fontSize.sm,

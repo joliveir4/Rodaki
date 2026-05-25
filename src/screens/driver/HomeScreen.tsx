@@ -9,7 +9,7 @@ import {
   ScrollView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import Icon from '@expo/vector-icons/MaterialCommunityIcons';
 import { usePassengers } from '@hooks/usePassengers';
 import { useAuthStore, selectAsDriver } from '@store/auth.store';
 import { usePassengersStore } from '@store/passengers.store';
